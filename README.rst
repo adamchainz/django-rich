@@ -58,7 +58,7 @@ Colourization is enabled or disabled according to Django’s ``--no-color`` and 
 __ https://docs.djangoproject.com/en/stable/howto/custom-management-commands/#django.core.management.BaseCommand
 
 .. |Console| replace:: ``Console``
-__ https://rich.readthedocs.io/en/stable/reference/console.html#rich.console.Console
+__ https://rich.readthedocs.io/en/stable/console.html
 
 You can use ``self.console`` like so:
 
