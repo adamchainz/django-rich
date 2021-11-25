@@ -1,0 +1,6 @@
+coverage
+django
+pytest
+pytest-django
+pytest-randomly
+rich
