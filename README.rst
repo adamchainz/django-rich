@@ -51,6 +51,7 @@ Reference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A subclass of Django’s |BaseCommand|__ class that sets its ``self.console`` to a Rich |Console|__.
+It tries to correctly enable/disable colourization based on Django’s ``--no-color`` and ``--force-color`` flags.
 Use this for Rich output in your management commands.
 
 .. |BaseCommand| replace:: ``BaseCommand``

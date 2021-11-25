@@ -67,6 +67,13 @@ class RichCommandTests(SimpleTestCase):
 
         assert stdout.getvalue() == "Alert!\n"
 
+    def test_output_force_color(self):
+        stdout = StringIO()
+
+        call_command("example", "--force-color", stdout=stdout)
+
+        assert stdout.getvalue() == "\x1b[1;31mAlert!\x1b[0m\n"
+
     def test_output_make_rich_console(self):
         stdout = FakeTtyStringIO()
         make_console = partial(Console, markup=False, highlight=False)
