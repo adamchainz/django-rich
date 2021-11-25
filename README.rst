@@ -51,8 +51,8 @@ Reference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A subclass of Django’s |BaseCommand|__ class that sets its ``self.console`` to a Rich |Console|__.
-It tries to correctly enable/disable colourization based on Django’s ``--no-color`` and ``--force-color`` flags.
-Use this for Rich output in your management commands.
+The ``Console`` uses the command’s ``stdout`` argument, which defaults to ``sys.stdout``.
+Colourization is enabled or disabled according to Django’s ``--no-color`` and ``--force-color`` flags.
 
 .. |BaseCommand| replace:: ``BaseCommand``
 __ https://docs.djangoproject.com/en/stable/howto/custom-management-commands/#django.core.management.BaseCommand
@@ -60,7 +60,7 @@ __ https://docs.djangoproject.com/en/stable/howto/custom-management-commands/#dj
 .. |Console| replace:: ``Console``
 __ https://rich.readthedocs.io/en/stable/reference/console.html#rich.console.Console
 
-For example:
+You can use ``self.console`` like so:
 
 .. code-block:: python
 
@@ -71,9 +71,9 @@ For example:
         def handle(self, *args, **options):
             self.console.print("[bold red]Alert![/bold red]")
 
-You can customize the construction of the Rich console by overriding the ``make_rich_console`` class attribute.
-This should be a callable that will construct a ``Console``, such as a |functools.partial|__.
-For example, to disable Rich’s default console markup and highlighting:
+You can customize the construction of the ``Console`` by overriding the ``make_rich_console`` class attribute.
+This should be a callable that returns a ``Console``, such as a |functools.partial|__.
+For example, to disable the default-on ``markup`` and ``highlighting`` flags:
 
 .. |functools.partial| replace:: ``functools.partial``
 __ https://docs.python.org/3/library/functools.html#functools.partial
