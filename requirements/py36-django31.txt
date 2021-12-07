@@ -73,9 +73,9 @@ dataclasses==0.8 \
     --hash=sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf \
     --hash=sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97
     # via rich
-django==3.1.13 \
-    --hash=sha256:9f8be75646f62204320b195062b1d696ba28aa3d45ee72fb7c888ffaebc5bdb2 \
-    --hash=sha256:a6e0d1ff11095b7394c079ade7094c73b2dc3df4a7a373c9b58ed73b77a97feb
+django==3.1.14 \
+    --hash=sha256:0fabc786489af16ad87a8c170ba9d42bfd23f7b699bd5ef05675864e8d012859 \
+    --hash=sha256:72a4a5a136a214c39cf016ccdd6b69e2aa08c7479c66d93f3a9b5e4bb9d8a347
     # via -r requirements.in
 importlib-metadata==4.8.2 \
     --hash=sha256:53ccfd5c134223e497627b9815d5030edf77d2ed573922f7a0b8f8bb81a1c100 \
