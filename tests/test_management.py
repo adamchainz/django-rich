@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from inspect import Parameter, Signature, signature
 from io import StringIO
