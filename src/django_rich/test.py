@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import sys
 import unittest
-from unittest.result import STDERR_LINE, STDOUT_LINE
+from unittest.result import (  # type: ignore [attr-defined]
+    STDERR_LINE,
+    STDOUT_LINE,
+    failfast,
+)
 
 from django.test import testcases
 from django.test.runner import DebugSQLTextTestResult, DiscoverRunner, PDBDebugResult
@@ -13,34 +17,36 @@ from rich.style import Style
 from rich.traceback import Traceback
 
 
-class RichMixin(unittest.TextTestResult):
-    # Traceback width defaults to 100
-    console = Console(width=100, stderr=True)
+class RichMixin(unittest.TestResult):
+    console = Console(stderr=True)
     django_green = Style(color=Color.from_rgb(32, 170, 118))
 
+    @failfast
     def addError(self, test, err):
-        super(unittest.TextTestResult, self).addError(test, err)
+        self.errors.append((test, self._exc_info_to_string(err, test)))
+        self._mirrorOutput = True
         if self.showAll:
             self.console.print("ERROR", style=Style(color="red"))
         elif self.dots:
             self.console.print("E", style=Style(color="red"), end="")
 
     def addSuccess(self, test):
-        super(unittest.TextTestResult, self).addSuccess(test)
         if self.showAll:
             self.console.print("ok", style=self.django_green)
         elif self.dots:
             self.console.print(".", style=self.django_green, end="")
 
+    @failfast
     def addFailure(self, test, err):
-        super(unittest.TextTestResult, self).addFailure(test, err)
+        self.failures.append((test, self._exc_info_to_string(err, test)))
+        self._mirrorOutput = True
         if self.showAll:
             self.console.print("FAIL", style=Style(color="red"))
         elif self.dots:
             self.console.print("F", style=Style(color="red"), end="")
 
     def addSkip(self, test, reason):
-        super(unittest.TextTestResult, self).addSkip(test, reason)
+        self.skipped.append((test, reason))
         if self.showAll:
             self.console.print(
                 "skipped {0!r}".format(reason), style=Style(color="yellow")
@@ -49,14 +55,15 @@ class RichMixin(unittest.TextTestResult):
             self.console.print("s", style=Style(color="yellow"), end="")
 
     def addExpectedFailure(self, test, err):
-        super(unittest.TextTestResult, self).addExpectedFailure(test, err)
+        self.expectedFailures.append((test, self._exc_info_to_string(err, test)))
         if self.showAll:
             self.console.print("expected failure", style=Style(color="yellow"))
         elif self.dots:
             self.console.print("x", style=Style(color="yellow"), end="")
 
+    @failfast
     def addUnexpectedSuccess(self, test):
-        super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
+        self.unexpectedSuccesses.append(test)
         if self.showAll:
             self.console.print("unexpected success", style=Style(color="red"))
         elif self.dots:
@@ -111,7 +118,7 @@ class RichTestRunner(unittest.TextTestRunner):
     resultclass = RichTextTestResult
 
 
-class RichDiscoverRunner(DiscoverRunner):
+class RichRunner(DiscoverRunner):
     test_runner = RichTestRunner
 
     def get_resultclass(self):
