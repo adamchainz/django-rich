@@ -4,6 +4,7 @@ import os
 import subprocess
 import unittest
 
+import django
 import pytest
 from django.test import SimpleTestCase
 
@@ -43,8 +44,6 @@ class TestRunnerTests:
     }
 
     def test_traceback(self):
-        OUTPUT = "─ locals ─"
-
         stderr = subprocess.run(
             [
                 "python",
@@ -57,38 +56,9 @@ class TestRunnerTests:
             text=True,
             env=self.env,
         ).stderr
-        assert OUTPUT in stderr
+        assert "─ locals ─" in stderr
 
-    def test_pdb_and_sql(self):
-        OUTPUT = "─ locals ─"
-
-        stderr = subprocess.run(
-            [
-                "python",
-                "-m",
-                "django",
-                "test",
-                "tests.test_runner.UnitTestRunnerTests.test_assertion",
-            ],
-            capture_output=True,
-            text=True,
-        ).stderr
-        assert OUTPUT in stderr
-
-        stderr = subprocess.run(
-            [
-                "python",
-                "-m",
-                "django",
-                "test",
-                "--pdb",
-                "tests.test_runner.UnitTestRunnerTests.test_assertion",
-            ],
-            capture_output=True,
-            text=True,
-        ).stderr
-        assert OUTPUT in stderr
-
+    def test_debug_sql(self):
         stderr = subprocess.run(
             [
                 "python",
@@ -101,7 +71,24 @@ class TestRunnerTests:
             capture_output=True,
             text=True,
         ).stderr
-        assert OUTPUT in stderr
+        assert "─ locals ─" in stderr
+        assert "Tests can have descriptions." in stderr
+
+    @pytest.mark.skipif(django.VERSION < (3,), reason="--pdb added in Django 3.0")
+    def test_pdb(self):
+        stderr = subprocess.run(
+            [
+                "python",
+                "-m",
+                "django",
+                "test",
+                "--pdb",
+                "tests.test_runner.UnitTestRunnerTests.test_assertion",
+            ],
+            capture_output=True,
+            text=True,
+        ).stderr
+        assert "─ locals ─" in stderr
 
     def test_django_assertion(sel):
         "Django and Unit test modules are hidden in traceback."
