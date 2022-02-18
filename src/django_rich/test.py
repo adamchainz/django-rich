@@ -54,9 +54,7 @@ class RichMixin(unittest.TestResult):
     def addSkip(self, test, reason):
         self.skipped.append((test, reason))
         if self.showAll:
-            self.console.print(
-                "skipped {0!r}".format(reason), style=Style(color="yellow")
-            )
+            self.console.print(f"skipped {reason!r}", style=Style(color="yellow"))
         elif self.dots:
             self.console.print("s", style=Style(color="yellow"), end="")
 
