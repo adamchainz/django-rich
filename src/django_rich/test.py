@@ -29,6 +29,8 @@ _SysExcInfoType = Union[
     tuple[type[BaseException], BaseException, TracebackType], tuple[None, None, None]
 ]
 
+DJANGO_GREEN = Style(color=Color.from_rgb(32, 170, 118))
+
 
 class RichTextTestResult(unittest.TextTestResult):
     # Declaring attribute since typeshed had wrong capitalization
@@ -36,7 +38,6 @@ class RichTextTestResult(unittest.TextTestResult):
     showAll: bool
 
     console = Console(stderr=True)
-    django_green = Style(color=Color.from_rgb(32, 170, 118))
 
     @failfast
     def addError(self, test: TestCase, err: _SysExcInfoType) -> None:
@@ -49,9 +50,9 @@ class RichTextTestResult(unittest.TextTestResult):
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
-            self.console.print("ok", style=self.django_green)
+            self.console.print("ok", style=DJANGO_GREEN)
         elif self.dots:
-            self.console.print(".", style=self.django_green, end="")
+            self.console.print(".", style=DJANGO_GREEN, end="")
 
     @failfast
     def addFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
@@ -119,7 +120,7 @@ class RichTextTestResult(unittest.TextTestResult):
         errors: list[tuple[TestCase, str]],
     ) -> None:
         for test, err in errors:
-            r = Rule(style=self.django_green)
+            r = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
             self.console.print(r, title, r)
             self.stream.write("%s\n" % err)
