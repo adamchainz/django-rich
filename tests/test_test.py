@@ -95,7 +95,7 @@ class TestRunnerTests(SimpleTestCase):
         ).stderr
         assert "─ locals ─" in stderr
 
-    def test_django_assertion(sel):
+    def test_django_assertion(self):
         "Django and Unit test modules are hidden in traceback."
         OUTPUT = "─ Traceback (most recent call last) ─"
 
