@@ -37,7 +37,7 @@ class UnitTestRunnerTests(SimpleTestCase):
         self.assertEqual(1, 1)
 
 
-class TestRunnerTests:
+class TestRunnerTests(SimpleTestCase):
     env = {
         **os.environ,
         "DJANGO_SETTINGS_MODULE": "tests.settings",
