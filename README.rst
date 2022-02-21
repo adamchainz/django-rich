@@ -109,4 +109,4 @@ __ https://rich.readthedocs.io/en/stable/traceback.html
 To use the runner in your ``settings.py`` file add a |TEST_RUNNER|__ setting with the value ``"django_rich.test.RichRunner"``.
 
 .. |TEST_RUNNER| replace:: ``TEST_RUNNER``
-__ https://docs.djangoproject.com/en/4.0/ref/settings/#std:setting-TEST_RUNNER
+__ https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-TEST_RUNNER
