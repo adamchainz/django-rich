@@ -4,7 +4,7 @@ import io
 import sys
 import unittest
 from types import TracebackType
-from typing import Union
+from typing import Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import (  # type: ignore [attr-defined]
     STDERR_LINE,
@@ -26,7 +26,8 @@ if django.VERSION >= (3, 0):
 
 
 _SysExcInfoType = Union[
-    tuple[type[BaseException], BaseException, TracebackType], tuple[None, None, None]
+    Tuple[Type[BaseException], BaseException, TracebackType],
+    Tuple[None, None, None],
 ]
 
 DJANGO_GREEN = Style(color=Color.from_rgb(32, 170, 118))
