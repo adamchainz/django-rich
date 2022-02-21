@@ -14,6 +14,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE: list[str] = []
 
-USE_TZ = True
-
 TEST_RUNNER = "django_rich.test.RichRunner"
+
+USE_TZ = True
