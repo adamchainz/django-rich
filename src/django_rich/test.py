@@ -39,6 +39,12 @@ class RichTextTestResult(unittest.TextTestResult):
 
     console = Console(stderr=True)
 
+    def addSuccess(self, test: TestCase) -> None:
+        if self.showAll:
+            self.console.print("ok", style=DJANGO_GREEN)
+        elif self.dots:
+            self.console.print(".", style=DJANGO_GREEN, end="")
+
     @failfast
     def addError(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.errors.append((test, self._exc_info_to_string(err, test)))
@@ -47,12 +53,6 @@ class RichTextTestResult(unittest.TextTestResult):
             self.console.print("ERROR", style=Style(color="red"))
         elif self.dots:
             self.console.print("E", style=Style(color="red"), end="")
-
-    def addSuccess(self, test: TestCase) -> None:
-        if self.showAll:
-            self.console.print("ok", style=DJANGO_GREEN)
-        elif self.dots:
-            self.console.print(".", style=DJANGO_GREEN, end="")
 
     @failfast
     def addFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
@@ -84,6 +84,19 @@ class RichTextTestResult(unittest.TextTestResult):
             self.console.print("unexpected success", style=Style(color="red"))
         elif self.dots:
             self.console.print("u", style=Style(color="red"), end="")
+
+    # Typeshed had wrong signature
+    # https://github.com/python/typeshed/pull/7341
+    def printErrorList(  # type: ignore [override]
+        self,
+        flavour: str,
+        errors: list[tuple[TestCase, str]],
+    ) -> None:
+        for test, err in errors:
+            r = Rule(style=DJANGO_GREEN)
+            title = f"{flavour}: {self.getDescription(test)}"
+            self.console.print(r, title, r)
+            self.stream.write("%s\n" % err)
 
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
         """Converts a sys.exc_info()-style tuple of values into a string."""
@@ -117,19 +130,6 @@ class RichTextTestResult(unittest.TextTestResult):
                 msgLines.append(STDERR_LINE % error)
 
         return "".join(msgLines)
-
-    # Typeshed had wrong signature
-    # https://github.com/python/typeshed/pull/7341
-    def printErrorList(  # type: ignore [override]
-        self,
-        flavour: str,
-        errors: list[tuple[TestCase, str]],
-    ) -> None:
-        for test, err in errors:
-            r = Rule(style=DJANGO_GREEN)
-            title = f"{flavour}: {self.getDescription(test)}"
-            self.console.print(r, title, r)
-            self.stream.write("%s\n" % err)
 
 
 class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
