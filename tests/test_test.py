@@ -26,8 +26,8 @@ class ExampleTests(SimpleTestCase):
         self.assertURLEqual("/url/", "/test/")
 
     @unittest.skip("some reason")
-    def test_skip(self):
-        raise ValueError
+    def test_skip(self):  # pragma: no cover
+        raise ValueError("never run")
 
     @unittest.expectedFailure
     def test_expected_failure(self):
