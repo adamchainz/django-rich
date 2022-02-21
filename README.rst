@@ -96,17 +96,20 @@ __ https://docs.python.org/3/library/functools.html#functools.partial
 ``django_rich.test.RichRunner``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A subclass of Django's |DiscoverRunner|__ with colourized outputs and ``Rich`` |Tracebacks|__.
+A subclass of Django's |DiscoverRunner|__ with colourized outputs and `nice traceback rendering <https://rich.readthedocs.io/en/stable/traceback.html>`__.
 
 .. image:: img/RichRunner.png
 
 .. |DiscoverRunner| replace:: ``DiscoverRunner``
 __ https://docs.djangoproject.com/en/stable/topics/testing/advanced/#defining-a-test-runner
 
-.. |Tracebacks| replace:: ``Tracebacks``
-__ https://rich.readthedocs.io/en/stable/traceback.html
-
-To use the runner in your ``settings.py`` file add a |TEST_RUNNER|__ setting with the value ``"django_rich.test.RichRunner"``.
+To use the runner, point your add a |TEST_RUNNER|__ setting to it:
 
 .. |TEST_RUNNER| replace:: ``TEST_RUNNER``
 __ https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-TEST_RUNNER
+
+.. code-block:: python
+
+    TEST_RUNNER = "django_rich.test.RichRunner"
+
+You can also use it for your custom subclasses.
