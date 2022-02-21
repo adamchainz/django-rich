@@ -93,9 +93,9 @@ class RichTextTestResult(unittest.TextTestResult):
         errors: list[tuple[TestCase, str]],
     ) -> None:
         for test, err in errors:
-            r = Rule(style=DJANGO_GREEN)
+            rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
-            self.console.print(r, title, r)
+            self.console.print(rule, title, rule)
             self.stream.write("%s\n" % err)
 
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
