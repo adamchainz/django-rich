@@ -2,6 +2,8 @@
 History
 =======
 
+* Add ``django_rich.test.RichRunner``, a custom test runner that uses Rich colouring and tracebacks.
+
 1.1.0 (2022-01-10)
 ------------------
 
