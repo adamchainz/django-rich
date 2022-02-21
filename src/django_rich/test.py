@@ -21,7 +21,7 @@ if django.VERSION >= (3, 0):
     from django.test.runner import PDBDebugResult
 
 
-class RichResult(unittest.TestResult):
+class RichTextTestResult(unittest.TextTestResult):
     console = Console(stderr=True)
     django_green = Style(color=Color.from_rgb(32, 170, 118))
 
@@ -104,17 +104,13 @@ class RichResult(unittest.TestResult):
             self.stream.writeln("%s" % err)
 
 
-class RichTextTestResult(RichResult, unittest.TextTestResult):
-    pass
-
-
-class RichDebugSQLTextTestResult(RichResult, DebugSQLTextTestResult):
+class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
     pass
 
 
 if django.VERSION >= (3, 0):
 
-    class RichPDBDebugResult(RichResult, PDBDebugResult):
+    class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
         pass
 
 
