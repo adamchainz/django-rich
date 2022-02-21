@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import unittest
+from pathlib import Path
 
 import django
 import pytest
@@ -37,10 +38,14 @@ class UnitTestRunnerTests(SimpleTestCase):
         self.assertEqual(1, 1)
 
 
+SETUP_CFG_PATH = Path(__file__).resolve().parent.parent / "setup.cfg"
+
+
 class TestRunnerTests(SimpleTestCase):
     env = {
         **os.environ,
         "DJANGO_SETTINGS_MODULE": "tests.settings",
+        "COVERAGE_PROCESS_START": str(SETUP_CFG_PATH),
     }
 
     def test_traceback(self):
