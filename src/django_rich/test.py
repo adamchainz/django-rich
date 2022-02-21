@@ -8,6 +8,7 @@ from unittest.result import (  # type: ignore [attr-defined]
     failfast,
 )
 
+import django
 from django.test import testcases
 from django.test.runner import DebugSQLTextTestResult, DiscoverRunner
 from rich.color import Color
@@ -16,11 +17,8 @@ from rich.rule import Rule
 from rich.style import Style
 from rich.traceback import Traceback
 
-# PDBDebugResult added in Django 3.0.
-try:
+if django.VERSION >= (3, 0):
     from django.test.runner import PDBDebugResult
-except ImportError:
-    PDBDebugResult = None
 
 
 class RichMixin(unittest.TestResult):
@@ -114,13 +112,13 @@ class RichDebugSQLTextTestResult(RichMixin, DebugSQLTextTestResult):
     pass
 
 
-if PDBDebugResult:
+if django.VERSION >= (3, 0):
 
     class RichPDBDebugResult(RichMixin, PDBDebugResult):
         pass
 
 
-class RichTestRunner(unittest.TextTestRunner):
+class RichTestRunner(DiscoverRunner.test_runner):
     resultclass = RichTextTestResult
 
 
@@ -130,5 +128,5 @@ class RichRunner(DiscoverRunner):
     def get_resultclass(self):
         if self.debug_sql:
             return RichDebugSQLTextTestResult
-        elif PDBDebugResult and self.pdb:
+        elif django.VERSION >= (3, 0) and self.pdb:
             return RichPDBDebugResult
