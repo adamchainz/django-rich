@@ -92,11 +92,16 @@ class RichTextTestResult(unittest.TextTestResult):
         while tb and self._is_relevant_tb_level(tb):  # type: ignore [attr-defined]
             tb = tb.tb_next
 
-        extract = Traceback.extract(exctype, value, tb, show_locals=True)
-        tb_e = Traceback(extract, suppress=[unittest, testcases])
-        with self.console.capture() as capture:
-            self.console.print(tb_e)
-        msgLines = capture.get()
+        msgLines = []
+        if exctype is not None:
+            assert value is not None
+            assert tb is not None
+            extract = Traceback.extract(exctype, value, tb, show_locals=True)
+            tb_e = Traceback(extract, suppress=[unittest, testcases])
+            with self.console.capture() as capture:
+                self.console.print(tb_e)
+            msgLines.append(capture.get())
+
         if self.buffer:
             assert isinstance(sys.stdout, io.StringIO)
             output = sys.stdout.getvalue()
@@ -110,6 +115,7 @@ class RichTextTestResult(unittest.TextTestResult):
                 if not error.endswith("\n"):
                     error += "\n"
                 msgLines.append(STDERR_LINE % error)
+
         return "".join(msgLines)
 
     # Typeshed had wrong signature
