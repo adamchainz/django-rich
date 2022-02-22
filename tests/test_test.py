@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-from io import StringIO
-
-import re
 import os
+import re
 import subprocess
 import unittest
 import unittest.case
+from io import StringIO
 from pathlib import Path
 
 import django
 import pytest
 from django.test import SimpleTestCase, TestCase
-from tests.testapp.models import Person
-from django.test.runner import  DiscoverRunner
+from django.test.runner import DiscoverRunner
+
 from django_rich.test import RichRunner
+from tests.testapp.models import Person
+
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
 class ExampleTests(SimpleTestCase):
@@ -285,6 +286,7 @@ class TestRunnerTests(SimpleTestCase):
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert result.stderr.count("─ locals ─") == 1
 
+
 class TestDebugSQL(unittest.TestCase):
     class PassingTest(TestCase):
         def runTest(self):
@@ -347,8 +349,8 @@ class TestDebugSQL(unittest.TestCase):
         return stream.getvalue()
 
     def test_output_normal(self):
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        full_output = ansi_escape.sub('', self._test_output(1))
+        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        full_output = ansi_escape.sub("", self._test_output(1))
         for output in self.expected_outputs:
             self.assertIn(output, full_output)
         for output in self.verbose_expected_outputs:
@@ -356,8 +358,8 @@ class TestDebugSQL(unittest.TestCase):
 
     def test_output_verbose(self):
         full_output = self._test_output(2)
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        full_output = ansi_escape.sub('', full_output)
+        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        full_output = ansi_escape.sub("", full_output)
         for output in self.expected_outputs:
             self.assertIn(output, full_output)
         for output in self.verbose_expected_outputs:
