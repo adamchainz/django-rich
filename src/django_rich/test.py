@@ -27,6 +27,7 @@ if django.VERSION >= (3, 0):
 
 _SysExcInfoType = Union[
     Tuple[Type[BaseException], BaseException, TracebackType],
+    Tuple[Type[BaseException], BaseException, None],
     Tuple[None, None, None],
 ]
 
@@ -120,8 +121,7 @@ class RichTextTestResult(unittest.TextTestResult):
 
         msgLines = []
         if exctype is not None:
-            # assert value is not None
-            # assert tb is not None
+            assert value is not None
             extract = Traceback.extract(exctype, value, tb, show_locals=True)
             tb_e = Traceback(extract, suppress=[unittest, testcases])
             with self.console.capture() as capture:

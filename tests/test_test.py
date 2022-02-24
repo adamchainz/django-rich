@@ -67,6 +67,18 @@ class TestRunnerTests(SimpleTestCase):
             **kwargs,
         )
 
+    def test_does_not_exist(self):
+        result = self.run_test("does_not_exist")
+        assert result.returncode == 1
+        assert result.stderr.splitlines()[:6] == [
+            "E",
+            "─" * 80,
+            "ERROR: does_not_exist (unittest.loader._FailedTest)",
+            "─" * 80,
+            "ImportError: Failed to import test module: does_not_exist",
+            "Traceback (most recent call last):",
+        ]
+
     def test_pass_quiet(self):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_pass")
         assert result.returncode == 0
