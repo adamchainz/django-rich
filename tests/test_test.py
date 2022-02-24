@@ -1,20 +1,14 @@
 from __future__ import annotations
 
 import os
-import re
 import subprocess
 import unittest
 import unittest.case
-from io import StringIO
 from pathlib import Path
 
 import django
 import pytest
 from django.test import SimpleTestCase, TestCase
-from django.test.runner import DiscoverRunner
-
-from django_rich.test import RichRunner
-from tests.testapp.models import Person
 
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
@@ -285,144 +279,3 @@ class TestRunnerTests(SimpleTestCase):
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert result.stderr.count("─ locals ─") == 1
-
-
-class TestDebugSQL(unittest.TestCase):
-    class PassingTest(TestCase):
-        def runTest(self):
-            Person.objects.filter(first_name="pass").count()
-
-    class FailingTest(TestCase):
-        def runTest(self):
-            Person.objects.filter(first_name="fail").count()
-            self.fail()
-
-    class ErrorTest(TestCase):
-        def runTest(self):
-            Person.objects.filter(first_name="error").count()
-            raise Exception
-
-    class ErrorSetUpTestDataTest(TestCase):
-        @classmethod
-        def setUpTestData(cls):
-            raise Exception
-
-        def runTest(self):
-            pass
-
-    class PassingSubTest(TestCase):
-        def runTest(self):
-            with self.subTest():
-                Person.objects.filter(first_name="subtest-pass").count()
-
-    class FailingSubTest(TestCase):
-        def runTest(self):
-            with self.subTest():
-                Person.objects.filter(first_name="subtest-fail").count()
-                self.fail()
-
-    class ErrorSubTest(TestCase):
-        def runTest(self):
-            with self.subTest():
-                Person.objects.filter(first_name="subtest-error").count()
-                raise Exception
-
-    def _test_output(self, verbosity):
-        runner = RichRunner(debug_sql=True, verbosity=0)
-        suite = runner.test_suite()
-        suite.addTest(self.FailingTest())
-        suite.addTest(self.ErrorTest())
-        suite.addTest(self.PassingTest())
-        suite.addTest(self.PassingSubTest())
-        suite.addTest(self.FailingSubTest())
-        suite.addTest(self.ErrorSubTest())
-        old_config = runner.setup_databases()
-        stream = StringIO()
-        resultclass = runner.get_resultclass()
-        runner.test_runner(
-            verbosity=verbosity,
-            stream=stream,
-            resultclass=resultclass,
-        ).run(suite)
-        runner.teardown_databases(old_config)
-
-        return stream.getvalue()
-
-    def test_output_normal(self):
-        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-        full_output = ansi_escape.sub("", self._test_output(1))
-        for output in self.expected_outputs:
-            self.assertIn(output, full_output)
-        for output in self.verbose_expected_outputs:
-            self.assertNotIn(output, full_output)
-
-    def test_output_verbose(self):
-        full_output = self._test_output(2)
-        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-        full_output = ansi_escape.sub("", full_output)
-        for output in self.expected_outputs:
-            self.assertIn(output, full_output)
-        for output in self.verbose_expected_outputs:
-            self.assertIn(output, full_output)
-
-    expected_outputs = [
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'error';"""
-        ),
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'fail';"""
-        ),
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'subtest-error';"""
-        ),
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'subtest-fail';"""
-        ),
-    ]
-
-    verbose_expected_outputs = [
-        "runTest (tests.test_test.TestDebugSQL.FailingTest) ... FAIL",
-        "runTest (tests.test_test.TestDebugSQL.ErrorTest) ... ERROR",
-        "runTest (tests.test_test.TestDebugSQL.PassingTest) ... ok",
-        # If there are errors/failures in subtests but not in test itself,
-        # the status is not written. That behavior comes from Python.
-        "runTest (tests.test_test.TestDebugSQL.FailingSubTest) ...",
-        "runTest (tests.test_test.TestDebugSQL.ErrorSubTest) ...",
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'pass';"""
-        ),
-        (
-            """SELECT COUNT(*) AS "__count" """
-            """FROM "testapp_person" WHERE """
-            """"testapp_person"."first_name" = 'subtest-pass';"""
-        ),
-    ]
-
-    def test_setupclass_exception(self):
-        runner = DiscoverRunner(debug_sql=True, verbosity=0)
-        suite = runner.test_suite()
-        suite.addTest(self.ErrorSetUpTestDataTest())
-        old_config = runner.setup_databases()
-        stream = StringIO()
-        runner.test_runner(
-            verbosity=0,
-            stream=stream,
-            resultclass=runner.get_resultclass(),
-        ).run(suite)
-        runner.teardown_databases(old_config)
-        output = stream.getvalue()
-        self.assertIn(
-            "ERROR: setUpClass "
-            "(tests.test_test.TestDebugSQL.ErrorSetUpTestDataTest)",
-            output,
-        )
