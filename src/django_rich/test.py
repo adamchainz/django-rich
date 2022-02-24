@@ -101,7 +101,7 @@ class RichTextTestResult(unittest.TextTestResult):
     def printErrorList(  # type: ignore [override]
         self,
         flavour: str,
-        errors: list[tuple[TestCase, str]],
+        errors: Iterable[tuple[TestCase, str]],
     ) -> None:
         for test, err in errors:
             rule = Rule(style=DJANGO_GREEN)
