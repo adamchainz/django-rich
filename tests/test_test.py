@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import unittest
 import unittest.case
 from pathlib import Path
@@ -45,6 +46,26 @@ class ExampleTests(TestCase):
     @unittest.expectedFailure
     def test_unexpected_success(self):
         self.assertEqual(1, 1)
+
+    def test_pass_output(self):
+        print("This is some example output")
+        print("This is some example output", file=sys.stderr)
+
+    def test_failure_stdout(self):
+        print("This is some example output")
+        self.assertTrue(False)
+
+    def test_failure_stdout_no_newline(self):
+        print("This is some example output", end="")
+        self.assertTrue(False)
+
+    def test_failure_stderr(self):
+        print("This is some example output", file=sys.stderr)
+        self.assertTrue(False)
+
+    def test_failure_stderr_no_newline(self):
+        print("This is some example output", end="", file=sys.stderr)
+        self.assertTrue(False)
 
 
 SETUP_CFG_PATH = Path(__file__).resolve().parent.parent / "setup.cfg"
@@ -305,3 +326,65 @@ class TestRunnerTests(SimpleTestCase):
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert result.stderr.count("─ locals ─") == 1
+
+    def test_buffer_pass(self):
+        result = self.run_test("--buffer", f"{__name__}.ExampleTests.test_pass_output")
+        assert result.returncode == 0
+        assert "This is some example output" not in result.stdout
+        assert "This is some example output" not in result.stderr
+
+    def test_buffer_stdout(self):
+        result = self.run_test(
+            "--buffer", f"{__name__}.ExampleTests.test_failure_stdout"
+        )
+        assert result.returncode == 1
+        assert result.stderr.splitlines()[-10:-4] == [
+            "AssertionError: False is not true",
+            "",
+            "Stdout:",
+            "This is some example output",
+            "",
+            "-" * 70,
+        ]
+
+    def test_buffer_stdout_no_newline(self):
+        result = self.run_test(
+            "--buffer", f"{__name__}.ExampleTests.test_failure_stdout_no_newline"
+        )
+        assert result.returncode == 1
+        assert result.stderr.splitlines()[-10:-4] == [
+            "AssertionError: False is not true",
+            "",
+            "Stdout:",
+            "This is some example output",
+            "",
+            "-" * 70,
+        ]
+
+    def test_buffer_stderr(self):
+        result = self.run_test(
+            "--buffer", f"{__name__}.ExampleTests.test_failure_stderr"
+        )
+        assert result.returncode == 1
+        assert result.stderr.splitlines()[-10:-4] == [
+            "AssertionError: False is not true",
+            "",
+            "Stderr:",
+            "This is some example output",
+            "",
+            "-" * 70,
+        ]
+
+    def test_buffer_stderr_no_newline(self):
+        result = self.run_test(
+            "--buffer", f"{__name__}.ExampleTests.test_failure_stderr_no_newline"
+        )
+        assert result.returncode == 1
+        assert result.stderr.splitlines()[-10:-4] == [
+            "AssertionError: False is not true",
+            "",
+            "Stderr:",
+            "This is some example output",
+            "",
+            "-" * 70,
+        ]
