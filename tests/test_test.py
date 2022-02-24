@@ -28,7 +28,10 @@ class ExampleTests(TestCase):
 
     def test_failure_sql_query(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT 1234")
+            cursor.execute(
+                "SELECT 1234, %s",
+                (5678,),
+            )
         self.assertTrue(False)
 
     @unittest.skip("some reason")
@@ -258,7 +261,7 @@ class TestRunnerTests(SimpleTestCase):
             "AssertionError: False is not true",
             "",
             "─" * 80,
-            "(0.000) SELECT 1234; args=None; alias=default",
+            "(0.000) SELECT 1234, 5678; args=(5678,); alias=default",
             "",
             "-" * 70,
         ]
