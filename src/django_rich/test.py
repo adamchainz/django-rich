@@ -31,6 +31,9 @@ _SysExcInfoType = Union[
 ]
 
 DJANGO_GREEN = Style(color=Color.from_rgb(32, 170, 118))
+DJANGO_GREEN_RULE = Rule(style=DJANGO_GREEN)
+RED = Style(color="red")
+YELLOW = Style(color="yellow")
 
 
 class RichTextTestResult(unittest.TextTestResult):
@@ -61,40 +64,40 @@ class RichTextTestResult(unittest.TextTestResult):
         self.errors.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            self.console.print("ERROR", style=Style(color="red"))
+            self.console.print("ERROR", style=RED)
         elif self.dots:
-            self.console.print("E", style=Style(color="red"), end="")
+            self.console.print("E", style=RED, end="")
 
     @failfast
     def addFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.failures.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            self.console.print("FAIL", style=Style(color="red"))
+            self.console.print("FAIL", style=RED)
         elif self.dots:
-            self.console.print("F", style=Style(color="red"), end="")
+            self.console.print("F", style=RED, end="")
 
     def addSkip(self, test: TestCase, reason: str) -> None:
         self.skipped.append((test, reason))
         if self.showAll:
-            self.console.print(f"skipped {reason!r}", style=Style(color="yellow"))
+            self.console.print(f"skipped {reason!r}", style=YELLOW)
         elif self.dots:
-            self.console.print("s", style=Style(color="yellow"), end="")
+            self.console.print("s", style=YELLOW, end="")
 
     def addExpectedFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.expectedFailures.append((test, self._exc_info_to_string(err, test)))
         if self.showAll:
-            self.console.print("expected failure", style=Style(color="yellow"))
+            self.console.print("expected failure", style=YELLOW)
         elif self.dots:
-            self.console.print("x", style=Style(color="yellow"), end="")
+            self.console.print("x", style=YELLOW, end="")
 
     @failfast
     def addUnexpectedSuccess(self, test: TestCase) -> None:
         self.unexpectedSuccesses.append(test)
         if self.showAll:
-            self.console.print("unexpected success", style=Style(color="red"))
+            self.console.print("unexpected success", style=RED)
         elif self.dots:
-            self.console.print("u", style=Style(color="red"), end="")
+            self.console.print("u", style=RED, end="")
 
     # Typeshed had wrong signature
     # https://github.com/python/typeshed/pull/7341
@@ -104,9 +107,8 @@ class RichTextTestResult(unittest.TextTestResult):
         errors: Iterable[tuple[TestCase, str]],
     ) -> None:
         for test, err in errors:
-            rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
-            self.console.print(rule, title, rule)
+            self.console.print(DJANGO_GREEN_RULE, title, DJANGO_GREEN_RULE)
             self.stream.write("%s\n" % err)
 
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
@@ -151,11 +153,10 @@ class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
         errors: Iterable[tuple[TestCase, str, str]],
     ) -> None:
         for test, err, sql_debug in errors:
-            rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
-            self.console.print(rule, title, rule)
+            self.console.print(DJANGO_GREEN_RULE, title, DJANGO_GREEN_RULE)
             self.stream.write("%s\n" % err)
-            self.console.print(rule)
+            self.console.print(DJANGO_GREEN_RULE)
             self.console.print(sql_debug)
 
 
