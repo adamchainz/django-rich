@@ -154,7 +154,7 @@ class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
             rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
             self.console.print(rule, title, rule)
-            self.console.print("%s\n" % err)
+            self.stream.write("%s\n" % err)
             self.console.print(rule)
             self.console.print(sql_debug)
 

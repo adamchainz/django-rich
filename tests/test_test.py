@@ -8,11 +8,12 @@ from pathlib import Path
 
 import django
 import pytest
+from django.db import connection
 from django.test import SimpleTestCase, TestCase
 
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
-class ExampleTests(SimpleTestCase):
+class ExampleTests(TestCase):
     def test_pass(self):
         self.assertEqual(1, 1)
 
@@ -24,6 +25,11 @@ class ExampleTests(SimpleTestCase):
 
     def test_failure_django_assertion(self):
         self.assertURLEqual("/url/", "/test/")
+
+    def test_failure_sql_query(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1234")
+        self.assertTrue(False)
 
     @unittest.skip("some reason")
     def test_skip(self):  # pragma: no cover
@@ -228,22 +234,22 @@ class TestRunnerTests(SimpleTestCase):
             "-" * 70,
         ]
 
-    # Need to refactor RichDebugSQLTextTestResult at least to add printErrorList
-    # def test_debug_sql(self):
-    #     stderr = subprocess.run(
-    #         [
-    #             "python",
-    #             "-m",
-    #             "django",
-    #             "test",
-    #             "--debug-sql",
-    #             f"{__name__}.ExampleTests.test_assertion",
-    #         ],
-    #         capture_output=True,
-    #         text=True,
-    #     ).stderr
-    #     assert "─ locals ─" in stderr
-    #     assert "Tests can have descriptions." in stderr
+    def test_debug_sql(self):
+        result = self.run_test(
+            "--debug-sql", f"{__name__}.ExampleTests.test_failure_sql_query"
+        )
+
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert "─ locals ─" in result.stderr
+        assert lines[-10:-4] == [
+            "AssertionError: False is not true",
+            "",
+            "─" * 80,
+            "(0.000) SELECT 1234; args=None; alias=default",
+            "",
+            "-" * 70,
+        ]
 
     @pytest.mark.skipif(django.VERSION < (3,), reason="--pdb added in Django 3.0")
     def test_pdb(self):
