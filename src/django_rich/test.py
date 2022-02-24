@@ -4,7 +4,7 @@ import io
 import sys
 import unittest
 from types import TracebackType
-from typing import Tuple, Type, Union
+from typing import Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import (  # type: ignore [attr-defined]
     STDERR_LINE,
@@ -38,10 +38,16 @@ class RichTextTestResult(unittest.TextTestResult):
     # https://github.com/python/typeshed/pull/7340
     showAll: bool
 
-    def __init__(self, stream, descriptions, verbosity):
+    def __init__(
+        self,
+        stream: TextIO,
+        descriptions: bool,
+        verbosity: int,
+    ) -> None:
         super().__init__(stream, descriptions, verbosity)
         self.console = Console(
-            file=self.stream.stream,  # Normally sys.stderr
+            # Get underlying stream from _WritelnDecorator, normally sys.stderr:
+            file=self.stream.stream,  # type: ignore [attr-defined]
         )
 
     def addSuccess(self, test: TestCase) -> None:
@@ -138,10 +144,11 @@ class RichTextTestResult(unittest.TextTestResult):
 
 
 class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
-    def printErrorList(
+    # DebugSQLTextTestResult adds sql_debug to errors in type-incompatible way
+    def printErrorList(  # type: ignore [override]
         self,
         flavour: str,
-        errors: list[tuple[TestCase, str], str],
+        errors: Iterable[tuple[TestCase, str, str]],
     ) -> None:
         for test, err, sql_debug in errors:
             rule = Rule(style=DJANGO_GREEN)
