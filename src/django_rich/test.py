@@ -120,7 +120,7 @@ class RichTextTestResult(unittest.TextTestResult):
             tb = tb.tb_next
 
         msgLines = []
-        if exctype is not None:
+        if exctype is not None:  # pragma: no branch  # can't work when this isn't true
             assert value is not None
             extract = Traceback.extract(exctype, value, tb, show_locals=True)
             tb_e = Traceback(extract, suppress=[unittest, testcases])
