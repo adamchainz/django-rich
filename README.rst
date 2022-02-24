@@ -103,7 +103,7 @@ A subclass of Django's |DiscoverRunner|__ with colourized outputs and `nice trac
 .. |DiscoverRunner| replace:: ``DiscoverRunner``
 __ https://docs.djangoproject.com/en/stable/topics/testing/advanced/#defining-a-test-runner
 
-To use the runner, point your add a |TEST_RUNNER|__ setting to it:
+To use this class, point your |TEST_RUNNER|__ setting to it:
 
 .. |TEST_RUNNER| replace:: ``TEST_RUNNER``
 __ https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-TEST_RUNNER
@@ -112,4 +112,16 @@ __ https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-TEST_RUNNE
 
     TEST_RUNNER = "django_rich.test.RichRunner"
 
-You can also use it for your custom subclasses.
+You can also use it as a base for further customization.
+Since only output is modified, it should combine well with other classes.
+
+The test runner provides the following benefits:
+
+* Output is colourized wherever possible.
+  This includes Rich’s default `highlighting <https://rich.readthedocs.io/en/stable/highlighting.html>`__ which will format numbers, quoted strings, URL’s, and more.
+
+* Failures and errors use Rich’s `traceback rendering <https://rich.readthedocs.io/en/stable/traceback.html>`__.
+  This displays the source code and local values per frame.
+  Each frame also shows the filename and line number, and on many terminals you can click the link to jump to the file at that position.
+
+* The ``--debug-sql`` and ``--pdb`` flags continue to work.
