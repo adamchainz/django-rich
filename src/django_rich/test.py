@@ -38,77 +38,57 @@ class RichTextTestResult(unittest.TextTestResult):
     # https://github.com/python/typeshed/pull/7340
     showAll: bool
 
-    console = Console(stderr=True)
+    def __init__(self, stream, descriptions, verbosity):
+        super().__init__(stream, descriptions, verbosity)
+        self.console = Console(
+            file=self.stream.stream,  # Normally sys.stderr
+        )
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print("ok", style=DJANGO_GREEN)
-            self.stream.write(capture.get())
+            self.console.print("ok", style=DJANGO_GREEN)
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print(".", style=DJANGO_GREEN, end="")
-            self.stream.write(capture.get())
+            self.console.print(".", style=DJANGO_GREEN, end="")
 
     @failfast
     def addError(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.errors.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print("ERROR", style=Style(color="red"))
-            self.stream.write(capture.get())
+            self.console.print("ERROR", style=Style(color="red"))
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print("E", style=Style(color="red"), end="")
-            self.stream.write(capture.get())
+            self.console.print("E", style=Style(color="red"), end="")
 
     @failfast
     def addFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.failures.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print("FAIL", style=Style(color="red"))
-            self.stream.write(capture.get())
+            self.console.print("FAIL", style=Style(color="red"))
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print("F", style=Style(color="red"), end="")
-            self.stream.write(capture.get())
+            self.console.print("F", style=Style(color="red"), end="")
 
     def addSkip(self, test: TestCase, reason: str) -> None:
         self.skipped.append((test, reason))
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print(f"skipped {reason!r}", style=Style(color="yellow"))
-            self.stream.write(capture.get())
+            self.console.print(f"skipped {reason!r}", style=Style(color="yellow"))
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print("s", style=Style(color="yellow"), end="")
-            self.stream.write(capture.get())
+            self.console.print("s", style=Style(color="yellow"), end="")
 
     def addExpectedFailure(self, test: TestCase, err: _SysExcInfoType) -> None:
         self.expectedFailures.append((test, self._exc_info_to_string(err, test)))
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print("expected failure", style=Style(color="yellow"))
-            self.stream.write(capture.get())
+            self.console.print("expected failure", style=Style(color="yellow"))
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print("x", style=Style(color="yellow"), end="")
-            self.stream.write(capture.get())
+            self.console.print("x", style=Style(color="yellow"), end="")
 
     @failfast
     def addUnexpectedSuccess(self, test: TestCase) -> None:
         self.unexpectedSuccesses.append(test)
         if self.showAll:
-            with self.console.capture() as capture:
-                self.console.print("unexpected success", style=Style(color="red"))
-            self.stream.write(capture.get())
+            self.console.print("unexpected success", style=Style(color="red"))
         elif self.dots:
-            with self.console.capture() as capture:
-                self.console.print("u", style=Style(color="red"), end="")
-            self.stream.write(capture.get())
+            self.console.print("u", style=Style(color="red"), end="")
 
     # Typeshed had wrong signature
     # https://github.com/python/typeshed/pull/7341
@@ -120,9 +100,7 @@ class RichTextTestResult(unittest.TextTestResult):
         for test, err in errors:
             rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
-            with self.console.capture() as capture:
-                self.console.print(rule, title, rule)
-            self.stream.write(capture.get())
+            self.console.print(rule, title, rule)
             self.stream.write("%s\n" % err)
 
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
@@ -168,12 +146,10 @@ class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
         for test, err, sql_debug in errors:
             rule = Rule(style=DJANGO_GREEN)
             title = f"{flavour}: {self.getDescription(test)}"
-            with self.console.capture() as capture:
-                self.console.print(rule, title, rule)
-                self.console.print("%s\n" % err)
-                self.console.print(rule)
-                self.console.print(sql_debug)
-            self.stream.write(capture.get())
+            self.console.print(rule, title, rule)
+            self.console.print("%s\n" % err)
+            self.console.print(rule)
+            self.console.print(sql_debug)
 
 
 if django.VERSION >= (3, 0):
