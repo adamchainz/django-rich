@@ -257,11 +257,16 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         lines = result.stderr.splitlines()
         assert "─ locals ─" in result.stderr
+        if django.VERSION >= (4,):
+            # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
+            sql_line = "(0.000) SELECT 1234, 5678; args=(5678,); alias=default"
+        else:
+            sql_line = "(0.000) SELECT 1234, 5678; args=(5678,)"
         assert lines[-10:-4] == [
             "AssertionError: False is not true",
             "",
             "─" * 80,
-            "(0.000) SELECT 1234, 5678; args=(5678,); alias=default",
+            sql_line,
             "",
             "-" * 70,
         ]
