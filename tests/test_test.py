@@ -71,7 +71,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_pass_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_pass")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:2] == [
+        assert result.stderr.splitlines()[1:3] == [
             ".",
             "-" * 70,
         ]
@@ -79,7 +79,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_pass_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_pass")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             "test_pass (tests.test_test.ExampleTests) ... ok",
             "",
             "-" * 70,
@@ -97,7 +97,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_error_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             "E",
             "─" * 80,
             "ERROR: test_error (tests.test_test.ExampleTests)",
@@ -107,7 +107,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_error_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:4] == [
+        assert result.stderr.splitlines()[1:5] == [
             "test_error (tests.test_test.ExampleTests) ... ERROR",
             "",
             "─" * 80,
@@ -127,7 +127,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_failure_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             "F",
             "─" * 80,
             "FAIL: test_failure (tests.test_test.ExampleTests)",
@@ -137,7 +137,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_failure_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:4] == [
+        assert result.stderr.splitlines()[1:5] == [
             "test_failure (tests.test_test.ExampleTests) ... FAIL",
             "",
             "─" * 80,
@@ -155,7 +155,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_skip_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_skip")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:2] == [
+        assert result.stderr.splitlines()[1:3] == [
             "s",
             "-" * 70,
         ]
@@ -163,7 +163,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_skip_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_skip")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             "test_skip (tests.test_test.ExampleTests) ... skipped 'some reason'",
             "",
             "-" * 70,
@@ -181,7 +181,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_expected_failure_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_expected_failure")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:2] == [
+        assert result.stderr.splitlines()[1:3] == [
             "x",
             "-" * 70,
         ]
@@ -191,7 +191,7 @@ class TestRunnerTests(SimpleTestCase):
             "-v", "2", f"{__name__}.ExampleTests.test_expected_failure"
         )
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             "test_expected_failure (tests.test_test.ExampleTests) ... expected failure",
             "",
             "-" * 70,
@@ -209,7 +209,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_unexpected_success_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_unexpected_success")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:2] == [
+        assert result.stderr.splitlines()[1:3] == [
             "u",
             "-" * 70,
         ]
@@ -219,7 +219,7 @@ class TestRunnerTests(SimpleTestCase):
             "-v", "2", f"{__name__}.ExampleTests.test_unexpected_success"
         )
         assert result.returncode == 0
-        assert result.stderr.splitlines()[:3] == [
+        assert result.stderr.splitlines()[1:4] == [
             (
                 "test_unexpected_success (tests.test_test.ExampleTests) ... "
                 + "unexpected success"
