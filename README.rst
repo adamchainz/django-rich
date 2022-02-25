@@ -124,4 +124,8 @@ The test runner provides the following benefits:
   This displays the source code and local values per frame.
   Each frame also shows the filename and line number, and on many terminals you can click the link to jump to the file at that position.
 
-* The ``--debug-sql`` and ``--pdb`` flags continue to work.
+* Output is also colourised when using the ``--debug-sql`` and ``--pdb`` flags.
+
+* All other flags from Django's DiscoverRunner continue to work in the normal way.
+
+
