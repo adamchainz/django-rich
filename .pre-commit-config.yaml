@@ -51,4 +51,5 @@ repos:
   hooks:
   - id: mypy
     additional_dependencies:
+    - rich
     - types-python-dateutil
