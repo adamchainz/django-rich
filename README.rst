@@ -115,7 +115,7 @@ __ https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-TEST_RUNNE
 You can also use it as a base for further customization.
 Since only output is modified, it should combine well with other classes.
 
-The test runner provides the following benefits:
+The test runner provides the following features:
 
 * Output is colourized wherever possible.
   This includes Rich’s default `highlighting <https://rich.readthedocs.io/en/stable/highlighting.html>`__ which will format numbers, quoted strings, URL’s, and more.
@@ -124,8 +124,6 @@ The test runner provides the following benefits:
   This displays the source code and local values per frame.
   Each frame also shows the filename and line number, and on many terminals you can click the link to jump to the file at that position.
 
-* Output is also colourised when using the ``--debug-sql`` and ``--pdb`` flags.
+* Output is also colourized when using the ``--debug-sql`` and ``--pdb`` flags.
 
 * All other flags from Django's DiscoverRunner continue to work in the normal way.
-
-
