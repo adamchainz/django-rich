@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import io
 import sys
+import time
 import unittest
 from types import TracebackType
-from typing import Iterable, TextIO, Tuple, Type, Union
+from typing import Any, Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
+from unittest.suite import _isnotsuite  # type: ignore [attr-defined]
 
 from django.test import testcases
 from django.test.runner import (  # type: ignore [attr-defined]
@@ -14,6 +16,7 @@ from django.test.runner import (  # type: ignore [attr-defined]
     DiscoverRunner,
     PDBDebugResult,
 )
+from django.test.utils import TimeKeeper  # type: ignore [attr-defined]
 from rich.color import Color
 from rich.console import Console
 from rich.rule import Rule
@@ -36,6 +39,8 @@ class RichTextTestResult(unittest.TextTestResult):
     # Declaring attribute since typeshed had wrong capitalization
     # https://github.com/python/typeshed/pull/7340
     showAll: bool
+
+    collectedDurations: list[tuple[TestCase, float]] = []
 
     def __init__(
         self,
@@ -161,10 +166,56 @@ class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc]
     resultclass = RichTextTestResult
 
 
+class RichTestSuite(unittest.TestSuite):
+    def run(
+        self, result: unittest.TestResult, debug: bool = False
+    ) -> unittest.TestResult:
+        topLevel = False
+        if getattr(result, "_testRunEntered", False) is False:
+            result._testRunEntered = topLevel = True  # type: ignore [attr-defined]
+
+        for index, test in enumerate(self):
+            if result.shouldStop:
+                break
+
+            if _isnotsuite(test):
+                self._tearDownPreviousClass(test, result)  # type: ignore [attr-defined]
+                self._handleModuleFixture(test, result)  # type: ignore [attr-defined]
+                self._handleClassSetUp(test, result)  # type: ignore [attr-defined]
+                result._previousTestClass = test.__class__  # type: ignore
+                # [attr-defined]
+                if getattr(test.__class__, "_classSetupFailed", False) or getattr(
+                    result, "_moduleSetUpFailed", False
+                ):
+                    continue
+            if not debug:
+                start_time = time.perf_counter()
+                test(result)
+                if isinstance(result, RichTextTestResult) and isinstance(
+                    test, TestCase
+                ):
+                    duration = time.perf_counter() - start_time
+                    result.collectedDurations.append((test, duration))
+
+            else:
+                test.debug()
+
+            # if self._cleanup: # Assume folk are not running python's regression tests.
+            # https://github.com/python/cpython/commit/8913a6c8
+            self._removeTestAtIndex(index)  # type: ignore [attr-defined]
+
+        if topLevel:
+            self._tearDownPreviousClass(None, result)  # type: ignore [attr-defined]
+            self._handleModuleTearDown(result)  # type: ignore [attr-defined]
+            result._testRunEntered = False  # type: ignore [attr-defined]
+        return result
+
+
 class RichRunner(DiscoverRunner):
     pdb: bool  # django-stubs missing
 
     test_runner = RichTestRunner
+    test_suite = RichTestSuite
 
     # django-stubs bad return type, fixed in:
     # https://github.com/typeddjango/django-stubs/pull/1069
@@ -176,3 +227,28 @@ class RichRunner(DiscoverRunner):
         elif self.pdb:
             return RichPDBDebugResult
         return None
+
+    def suite_result(  # type: ignore [override]
+        self,
+        suite: unittest.TestSuite,
+        result: RichTextTestResult,
+        **kwargs: Any,
+    ) -> int:
+        time_keeper = self.time_keeper  # type: ignore [attr-defined]
+        if result.collectedDurations and isinstance(time_keeper, TimeKeeper):
+            max_to_print = 100 if self.verbosity > 1 else 10
+            amount_to_print = min(len(result.collectedDurations), max_to_print)
+            result.console.print(
+                DJANGO_GREEN_RULE,
+                f"Slowest {amount_to_print} Tests",
+                DJANGO_GREEN_RULE,
+            )
+            by_time = sorted(
+                result.collectedDurations, key=lambda x: x[1], reverse=True
+            )
+            by_time = by_time[:amount_to_print]
+            for func_name, timing in by_time:
+                result.console.print(
+                    f"[bold yellow]{float(timing):.3f}s[/bold yellow] {func_name}"
+                )
+        return len(result.failures) + len(result.errors)

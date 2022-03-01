@@ -13,6 +13,8 @@ import pytest
 from django.db import connection
 from django.test import SimpleTestCase, TestCase
 
+from django_rich.test import RichTestSuite
+
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
 class ExampleTests(TestCase):
@@ -519,3 +521,67 @@ class TestRunnerTests(SimpleTestCase):
             "",
             "-" * 70,
         ]
+
+    def test_timing_normal(self):
+        result = self.run_test("--timing", f"{__name__}.ExampleTests")
+        assert result.returncode == 1
+        assert "Slowest 10 Tests" in result.stderr
+
+    def test_timing_normal_few_tests(self):
+        result = self.run_test(
+            "--timing", f"{__name__}.ExampleTests.test_failure_stderr"
+        )
+        assert result.returncode == 1
+        assert "Slowest 1 Tests" in result.stderr
+
+    def test_timing_verbose(self):
+        result = self.run_test("--timing", f"{__name__}.ExampleTests", "-v", "2")
+        assert result.returncode == 1
+        assert "Slowest 13 Tests" in result.stderr
+
+    def test_overriding_suite_call(self):
+        class MySuite(RichTestSuite):
+            called = False
+
+            def __call__(self, *args, **kw):
+                self.called = True
+                unittest.TestSuite.__call__(self, *args, **kw)
+
+        suite = MySuite()
+        wrapper = MySuite()
+        wrapper.addTest(suite)
+        wrapper(unittest.TestResult())
+        self.assertTrue(suite.called)
+
+    def test_subtests_debug(self):
+        events = []
+
+        class FooTest(unittest.TestCase):
+            def test_a(self):
+                events.append("test case")
+                with self.subTest():
+                    events.append("subtest 1")
+
+        wrapper = RichTestSuite()
+        wrapper.addTest(FooTest("test_a"))
+        wrapper.debug()
+        self.assertEqual(events, ["test case", "subtest 1"])
+
+    def test_failfast(self):
+        result = self.run_test("--failfast", f"{__name__}.ExampleTests")
+        assert result.returncode == 1
+        assert "Ran 1 test" in result.stderr
+
+    def test_fail_setupclass(self):
+        class FooTest(unittest.TestCase):
+            @classmethod
+            def setUpClass(self):
+                raise ValueError
+
+            def test_a(self):
+                pass  # pragma: no cover # test fails before this point.
+
+        wrapper = RichTestSuite()
+        wrapper.addTest(FooTest("test_a"))
+        result = wrapper.run(unittest.TestResult())
+        assert len(result.errors) == 1
