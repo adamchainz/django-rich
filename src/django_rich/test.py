@@ -6,11 +6,7 @@ import unittest
 from types import TracebackType
 from typing import Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
-from unittest.result import (  # type: ignore [attr-defined]
-    STDERR_LINE,
-    STDOUT_LINE,
-    failfast,
-)
+from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
 
 import django
 from django.test import testcases
