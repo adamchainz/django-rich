@@ -2,6 +2,8 @@
 History
 =======
 
+* Set minimum width of test runner console to 120 characters, to avoid “squeezed” output on CI systems.
+
 1.2.0 (2022-02-25)
 ------------------
 

@@ -124,6 +124,9 @@ The test runner provides the following features:
   This displays the source code and local values per frame.
   Each frame also shows the filename and line number, and on many terminals you can click the link to jump to the file at that position.
 
+* The minimum output width is 120 characters, in order to avoid “squeezing” tracebacks and other output.
+  This helps keep output readable on CI systems where Rich would normally use a width of 80 characters.
+
 * Output is also colourized when using the ``--debug-sql`` and ``--pdb`` flags.
 
 * All other flags from Django's DiscoverRunner continue to work in the normal way.

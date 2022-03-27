@@ -96,9 +96,9 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         assert result.stderr.splitlines()[:6] == [
             "E",
-            "─" * 80,
+            "─" * 120,
             "ERROR: does_not_exist (unittest.loader._FailedTest)",
-            "─" * 80,
+            "─" * 120,
             "ImportError: Failed to import test module: does_not_exist",
             "Traceback (most recent call last):",
         ]
@@ -131,7 +131,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
         assert result.stderr.splitlines()[:2] == [
-            "─" * 80,
+            "─" * 120,
             "ERROR: test_error (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -141,7 +141,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         assert result.stderr.splitlines()[1:4] == [
             "E",
-            "─" * 80,
+            "─" * 120,
             "ERROR: test_error (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -152,7 +152,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.stderr.splitlines()[1:5] == [
             "test_error (tests.test_test.ExampleTests) ... ERROR",
             "",
-            "─" * 80,
+            "─" * 120,
             "ERROR: test_error (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -161,7 +161,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
         assert result.stderr.splitlines()[:2] == [
-            "─" * 80,
+            "─" * 120,
             "FAIL: test_failure (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -171,7 +171,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         assert result.stderr.splitlines()[1:4] == [
             "F",
-            "─" * 80,
+            "─" * 120,
             "FAIL: test_failure (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -182,7 +182,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.stderr.splitlines()[1:5] == [
             "test_failure (tests.test_test.ExampleTests) ... FAIL",
             "",
-            "─" * 80,
+            "─" * 120,
             "FAIL: test_failure (tests.test_test.ExampleTests)",
         ]
         assert "─ locals ─" in result.stderr
@@ -286,7 +286,7 @@ class TestRunnerTests(SimpleTestCase):
         assert lines[-10:-4] == [
             "AssertionError: False is not true",
             "",
-            "─" * 80,
+            "─" * 120,
             sql_line,
             "",
             "-" * 70,

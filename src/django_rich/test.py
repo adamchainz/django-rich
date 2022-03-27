@@ -49,6 +49,8 @@ class RichTextTestResult(unittest.TextTestResult):
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
+        if self.console.width < 120:
+            self.console.width = 120
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
