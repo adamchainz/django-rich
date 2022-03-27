@@ -127,3 +127,17 @@ The test runner provides the following features:
 * Output is also colourized when using the ``--debug-sql`` and ``--pdb`` flags.
 
 * All other flags from Django's DiscoverRunner continue to work in the normal way.
+
+Output Width on CI
+~~~~~~~~~~~~~~~~~~
+
+When tests run on your CI system, you might find the output a bit narrow for showing tracebacks correctly.
+This is because Rich tries to autodetect the terminal dimensions, and if that fails, it will default to 80 characters wide.
+You can override this default with the ``COLUMNS`` environment variable (as per Python’s |shutil.get_terminal_size() function|__):
+
+.. |shutil.get_terminal_size() function| replace:: ``shutil.get_terminal_size()`` function
+__ https://docs.python.org/3/library/shutil.html#shutil.get_terminal_size
+
+.. code-block:: console
+
+    $ COLUMNS=120 ./manage.py test
