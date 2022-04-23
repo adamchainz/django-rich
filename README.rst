@@ -98,7 +98,7 @@ __ https://docs.python.org/3/library/functools.html#functools.partial
 
 A subclass of Django's |DiscoverRunner|__ with colourized outputs and `nice traceback rendering <https://rich.readthedocs.io/en/stable/traceback.html>`__.
 
-.. image:: img/RichRunner.png
+.. image:: https://raw.githubusercontent.com/adamchainz/django-rich/main/img/RichRunner.png
 
 .. |DiscoverRunner| replace:: ``DiscoverRunner``
 __ https://docs.djangoproject.com/en/stable/topics/testing/advanced/#defining-a-test-runner
