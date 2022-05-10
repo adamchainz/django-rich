@@ -8,18 +8,13 @@ from typing import Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
 
-import django
 from django.test import testcases
-from django.test.runner import DebugSQLTextTestResult, DiscoverRunner
+from django.test.runner import DebugSQLTextTestResult, DiscoverRunner, PDBDebugResult
 from rich.color import Color
 from rich.console import Console
 from rich.rule import Rule
 from rich.style import Style
 from rich.traceback import Traceback
-
-if django.VERSION >= (3, 0):
-    from django.test.runner import PDBDebugResult
-
 
 _SysExcInfoType = Union[
     Tuple[Type[BaseException], BaseException, TracebackType],
@@ -154,10 +149,8 @@ class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
             self.console.print(sql_debug)
 
 
-if django.VERSION >= (3, 0):
-
-    class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
-        pass
+class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
+    pass
 
 
 class RichTestRunner(DiscoverRunner.test_runner):
@@ -170,6 +163,6 @@ class RichRunner(DiscoverRunner):
     def get_resultclass(self) -> type[RichTextTestResult] | None:
         if self.debug_sql:
             return RichDebugSQLTextTestResult
-        elif django.VERSION >= (3, 0) and self.pdb:
+        elif self.pdb:
             return RichPDBDebugResult
         return None

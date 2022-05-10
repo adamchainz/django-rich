@@ -292,7 +292,6 @@ class TestRunnerTests(SimpleTestCase):
             "-" * 70,
         ]
 
-    @pytest.mark.skipif(django.VERSION < (3,), reason="--pdb added in Django 3.0")
     def test_pdb(self):
         result = self.run_test(
             "--pdb",
@@ -327,18 +326,12 @@ class TestRunnerTests(SimpleTestCase):
         assert 'self.assertURLEqual("/url/", "/test/")' in result.stderr
         assert result.stderr.count("─ locals ─") == 1
 
-    require_buffer_support = pytest.mark.skipif(
-        django.VERSION < (3, 1), reason="--buffer added in Django 3.1"
-    )
-
-    @require_buffer_support
     def test_buffer_pass(self):
         result = self.run_test("--buffer", f"{__name__}.ExampleTests.test_pass_output")
         assert result.returncode == 0
         assert "This is some example output" not in result.stdout
         assert "This is some example output" not in result.stderr
 
-    @require_buffer_support
     def test_buffer_stdout(self):
         result = self.run_test(
             "--buffer", f"{__name__}.ExampleTests.test_failure_stdout"
@@ -353,7 +346,6 @@ class TestRunnerTests(SimpleTestCase):
             "-" * 70,
         ]
 
-    @require_buffer_support
     def test_buffer_stdout_no_newline(self):
         result = self.run_test(
             "--buffer", f"{__name__}.ExampleTests.test_failure_stdout_no_newline"
@@ -368,7 +360,6 @@ class TestRunnerTests(SimpleTestCase):
             "-" * 70,
         ]
 
-    @require_buffer_support
     def test_buffer_stderr(self):
         result = self.run_test(
             "--buffer", f"{__name__}.ExampleTests.test_failure_stderr"
@@ -383,7 +374,6 @@ class TestRunnerTests(SimpleTestCase):
             "-" * 70,
         ]
 
-    @require_buffer_support
     def test_buffer_stderr_no_newline(self):
         result = self.run_test(
             "--buffer", f"{__name__}.ExampleTests.test_failure_stderr_no_newline"
