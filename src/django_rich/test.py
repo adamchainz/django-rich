@@ -96,9 +96,7 @@ class RichTextTestResult(unittest.TextTestResult):
         elif self.dots:
             self.console.print("u", style=RED, end="")
 
-    # Typeshed had wrong signature
-    # https://github.com/python/typeshed/pull/7341
-    def printErrorList(  # type: ignore [override]
+    def printErrorList(
         self,
         flavour: str,
         errors: Iterable[tuple[TestCase, str]],
