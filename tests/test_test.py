@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import unittest
@@ -94,14 +95,25 @@ class TestRunnerTests(SimpleTestCase):
     def test_does_not_exist(self):
         result = self.run_test("does_not_exist")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:6] == [
-            "E",
-            "─" * 80,
-            "ERROR: does_not_exist (unittest.loader._FailedTest)",
-            "─" * 80,
-            "ImportError: Failed to import test module: does_not_exist",
-            "Traceback (most recent call last):",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[:6] == [
+                "E",
+                "─" * 80,
+                "ERROR: does_not_exist (unittest.loader._FailedTest.does_not_exist)",
+                "─" * 80,
+                "ImportError: Failed to import test module: does_not_exist",
+                "Traceback (most recent call last):",
+            ]
+        else:
+            assert lines[:6] == [
+                "E",
+                "─" * 80,
+                "ERROR: does_not_exist (unittest.loader._FailedTest)",
+                "─" * 80,
+                "ImportError: Failed to import test module: does_not_exist",
+                "Traceback (most recent call last):",
+            ]
 
     def test_pass_quiet(self):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_pass")
@@ -121,70 +133,126 @@ class TestRunnerTests(SimpleTestCase):
     def test_pass_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_pass")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[1:4] == [
-            "test_pass (tests.test_test.ExampleTests) ... ok",
-            "",
-            "-" * 70,
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_pass (tests.test_test.ExampleTests.test_pass) ... ok",
+                "",
+                "-" * 70,
+            ]
+        else:
+            assert lines[1:4] == [
+                "test_pass (tests.test_test.ExampleTests) ... ok",
+                "",
+                "-" * 70,
+            ]
 
     def test_error_quiet(self):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:2] == [
-            "─" * 80,
-            "ERROR: test_error (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[:2] == [
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests.test_error)",
+            ]
+        else:
+            assert lines[:2] == [
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_error_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[1:4] == [
-            "E",
-            "─" * 80,
-            "ERROR: test_error (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "E",
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests.test_error)",
+            ]
+        else:
+            assert lines[1:4] == [
+                "E",
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_error_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_error")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[1:5] == [
-            "test_error (tests.test_test.ExampleTests) ... ERROR",
-            "",
-            "─" * 80,
-            "ERROR: test_error (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:5] == [
+                "test_error (tests.test_test.ExampleTests.test_error) ... ERROR",
+                "",
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests.test_error)",
+            ]
+        else:
+            assert lines[1:5] == [
+                "test_error (tests.test_test.ExampleTests) ... ERROR",
+                "",
+                "─" * 80,
+                "ERROR: test_error (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_failure_quiet(self):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[:2] == [
-            "─" * 80,
-            "FAIL: test_failure (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[:2] == [
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests.test_failure)",
+            ]
+        else:
+            assert lines[:2] == [
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_failure_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[1:4] == [
-            "F",
-            "─" * 80,
-            "FAIL: test_failure (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "F",
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests.test_failure)",
+            ]
+        else:
+            assert lines[1:4] == [
+                "F",
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_failure_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_failure")
         assert result.returncode == 1
-        assert result.stderr.splitlines()[1:5] == [
-            "test_failure (tests.test_test.ExampleTests) ... FAIL",
-            "",
-            "─" * 80,
-            "FAIL: test_failure (tests.test_test.ExampleTests)",
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:5] == [
+                "test_failure (tests.test_test.ExampleTests.test_failure) ... FAIL",
+                "",
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests.test_failure)",
+            ]
+        else:
+            assert lines[1:5] == [
+                "test_failure (tests.test_test.ExampleTests) ... FAIL",
+                "",
+                "─" * 80,
+                "FAIL: test_failure (tests.test_test.ExampleTests)",
+            ]
         assert "─ locals ─" in result.stderr
 
     def test_skip_quiet(self):
@@ -205,11 +273,22 @@ class TestRunnerTests(SimpleTestCase):
     def test_skip_verbose(self):
         result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_skip")
         assert result.returncode == 0
-        assert result.stderr.splitlines()[1:4] == [
-            "test_skip (tests.test_test.ExampleTests) ... skipped 'some reason'",
-            "",
-            "-" * 70,
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                (
+                    "test_skip (tests.test_test.ExampleTests.test_skip) ... "
+                    + "skipped 'some reason'"
+                ),
+                "",
+                "-" * 70,
+            ]
+        else:
+            assert lines[1:4] == [
+                "test_skip (tests.test_test.ExampleTests) ... skipped 'some reason'",
+                "",
+                "-" * 70,
+            ]
 
     def test_expected_failure_quiet(self):
         result = self.run_test(
@@ -233,42 +312,87 @@ class TestRunnerTests(SimpleTestCase):
             "-v", "2", f"{__name__}.ExampleTests.test_expected_failure"
         )
         assert result.returncode == 0
-        assert result.stderr.splitlines()[1:4] == [
-            "test_expected_failure (tests.test_test.ExampleTests) ... expected failure",
-            "",
-            "-" * 70,
-        ]
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                (
+                    "test_expected_failure (tests.test_test.ExampleTests."
+                    + "test_expected_failure) ... expected failure"
+                ),
+                "",
+                "-" * 70,
+            ]
+        else:
+            assert lines[1:4] == [
+                (
+                    "test_expected_failure (tests.test_test.ExampleTests) ... "
+                    + "expected failure"
+                ),
+                "",
+                "-" * 70,
+            ]
 
     def test_unexpected_success_quiet(self):
         result = self.run_test(
             "-v", "0", f"{__name__}.ExampleTests.test_unexpected_success"
         )
-        assert result.returncode == 0
-        assert result.stderr.splitlines()[:1] == [
-            "-" * 70,
-        ]
+
+        if django.VERSION >= (4, 1):
+            assert result.returncode == 1
+        else:
+            assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[:1] == ["=" * 70]
+        else:
+            assert lines[:1] == ["-" * 70]
 
     def test_unexpected_success_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_unexpected_success")
-        assert result.returncode == 0
-        assert result.stderr.splitlines()[1:3] == [
-            "u",
-            "-" * 70,
-        ]
+
+        if django.VERSION >= (4, 1):
+            assert result.returncode == 1
+        else:
+            assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:3] == [
+                "u",
+                "=" * 70,
+            ]
+        else:
+            assert lines[1:3] == [
+                "u",
+                "-" * 70,
+            ]
 
     def test_unexpected_success_verbose(self):
         result = self.run_test(
             "-v", "2", f"{__name__}.ExampleTests.test_unexpected_success"
         )
-        assert result.returncode == 0
-        assert result.stderr.splitlines()[1:4] == [
-            (
-                "test_unexpected_success (tests.test_test.ExampleTests) ... "
-                + "unexpected success"
-            ),
-            "",
-            "-" * 70,
-        ]
+        if django.VERSION >= (4, 1):
+            assert result.returncode == 1
+        else:
+            assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                (
+                    "test_unexpected_success (tests.test_test.ExampleTests."
+                    + "test_unexpected_success) ... unexpected success"
+                ),
+                "",
+                "=" * 70,
+            ]
+        else:
+            assert lines[1:4] == [
+                (
+                    "test_unexpected_success (tests.test_test.ExampleTests) "
+                    + "... unexpected success"
+                ),
+                "",
+                "-" * 70,
+            ]
 
     def test_debug_sql(self):
         result = self.run_test(
@@ -278,16 +402,20 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         lines = result.stderr.splitlines()
         assert "─ locals ─" in result.stderr
-        if django.VERSION >= (4,):
-            # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
-            sql_line = "(0.000) SELECT 1234, 5678; args=(5678,); alias=default"
-        else:
-            sql_line = "(0.000) SELECT 1234, 5678; args=(5678,)"
-        assert lines[-10:-4] == [
+        assert lines[-10:-7] == [
             "AssertionError: False is not true",
             "",
             "─" * 80,
-            sql_line,
+        ]
+        if django.VERSION >= (4, 0):
+            # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
+            sql_line_re = (
+                r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\); alias=default"
+            )
+        else:
+            sql_line_re = r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\)"
+        assert re.match(sql_line_re, lines[-7])
+        assert lines[-6:-4] == [
             "",
             "-" * 70,
         ]
