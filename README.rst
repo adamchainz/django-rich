@@ -128,6 +128,9 @@ The test runner provides the following features:
 
 * All other flags from Django's DiscoverRunner continue to work in the normal way.
 
+* If the ``--timing`` flag is provided the slowest 10 tests are outputted at the end of a test run.
+  This increases to the slowest 100 tests if verbosity ``-v`` is also provided with value 2 or greater.
+
 Output Width on CI
 ~~~~~~~~~~~~~~~~~~
 
