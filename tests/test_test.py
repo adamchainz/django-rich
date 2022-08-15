@@ -26,7 +26,9 @@ class ExampleTests(TestCase):
         self.assertEqual(1, 2)
 
     def test_failure_django_assertion(self):
-        self.assertURLEqual("/url/", "/test/")
+        # django-stubs doesn't know about assertURLEqual until:
+        # https://github.com/typeddjango/django-stubs/pull/1102
+        self.assertURLEqual("/url/", "/test/")  # type: ignore [attr-defined]
 
     def test_failure_sql_query(self):
         with connection.cursor() as cursor:
@@ -73,7 +75,9 @@ SETUP_CFG_PATH = Path(__file__).resolve().parent.parent / "setup.cfg"
 
 
 class TestRunnerTests(SimpleTestCase):
-    def run_test(self, *args, **kwargs):
+    def run_test(
+        self, *args: str, input: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [
                 "python",
@@ -82,6 +86,7 @@ class TestRunnerTests(SimpleTestCase):
                 "test",
                 *args,
             ],
+            input=input,
             capture_output=True,
             text=True,
             env={
@@ -89,7 +94,6 @@ class TestRunnerTests(SimpleTestCase):
                 "DJANGO_SETTINGS_MODULE": "tests.settings",
                 "COVERAGE_PROCESS_START": str(SETUP_CFG_PATH),
             },
-            **kwargs,
         )
 
     def test_does_not_exist(self):

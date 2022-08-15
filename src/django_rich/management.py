@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from typing import IO, Any
+from typing import Any, TextIO
 
 from django.core.management import BaseCommand, CommandError
 from rich.console import Console
@@ -10,18 +10,18 @@ from rich.console import Console
 class RichCommand(BaseCommand):
     def __init__(
         self,
-        stdout: IO[str] | None = None,
-        stderr: IO[str] | None = None,
-        no_color: bool | None = False,
-        force_color: bool | None = False,
+        stdout: TextIO | None = None,
+        stderr: TextIO | None = None,
+        no_color: bool = False,
+        force_color: bool = False,
     ):
         super().__init__(stdout, stderr, no_color, force_color)
         self._setup_console(stdout, no_color, force_color)
 
     def execute(self, *args: Any, **options: Any) -> str | None:
-        force_color: bool | None = options["force_color"]
-        no_color: bool | None = options["no_color"]
-        stdout: IO[str] | None = options.get("stdout")
+        force_color: bool = options["force_color"]
+        no_color: bool = options["no_color"]
+        stdout: TextIO | None = options.get("stdout")
 
         # Duplicate check from Django, since we’re running first.
         if force_color and no_color:
@@ -31,11 +31,14 @@ class RichCommand(BaseCommand):
 
         self._setup_console(stdout, no_color, force_color)
 
-        return super().execute(*args, **options)
+        # django-stubs has Any type for execute()
+        # https://github.com/typeddjango/django-stubs/pull/1104
+        result: str | None = super().execute(*args, **options)
+        return result
 
     def _setup_console(
         self,
-        stdout: IO[str] | None,
+        stdout: TextIO | None,
         no_color: bool | None,
         force_color: bool | None,
     ) -> None:
