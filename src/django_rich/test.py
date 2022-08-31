@@ -57,7 +57,8 @@ class RichTextTestResult(unittest.TextTestResult):
 
     def stopTest(self, test: TestCase) -> None:
         total = (time.perf_counter_ns() - self._timing_start) / 1e9
-        self.collectedDurations.append((test, total))
+        if total >= 0.005:
+            self.collectedDurations.append((test, total))
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
@@ -206,8 +207,8 @@ class RichRunner(DiscoverRunner):
                 result.collectedDurations, key=lambda x: x[1], reverse=True
             )
             by_time = by_time[:amount_to_print]
-            for func_name, timing in by_time:
+            for test, timing in by_time:
                 result.console.print(
-                    f"[bold yellow]{float(timing):.3f}s[/bold yellow] {func_name}"
+                    f"[bold yellow]{float(timing):.3f}s[/bold yellow] {test}"
                 )
         return len(result.failures) + len(result.errors)
