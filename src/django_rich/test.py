@@ -8,7 +8,6 @@ from types import TracebackType
 from typing import Any, Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
-from unittest.suite import _isnotsuite  # type: ignore [attr-defined]
 
 from django.test import testcases
 from django.test.runner import (  # type: ignore [attr-defined]
@@ -52,6 +51,13 @@ class RichTextTestResult(unittest.TextTestResult):
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
         self.collectedDurations: list[tuple[TestCase, float]] = []
+
+    def startTest(self, test: TestCase) -> None:
+        self._timing_start = time.perf_counter_ns()
+
+    def stopTest(self, test: TestCase) -> None:
+        total = (time.perf_counter_ns() - self._timing_start) / 1e9
+        self.collectedDurations.append((test, total))
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
@@ -165,56 +171,10 @@ class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc]
     resultclass = RichTextTestResult
 
 
-class RichTestSuite(unittest.TestSuite):
-    def run(
-        self, result: unittest.TestResult, debug: bool = False
-    ) -> unittest.TestResult:
-        topLevel = False
-        if getattr(result, "_testRunEntered", False) is False:
-            result._testRunEntered = topLevel = True  # type: ignore [attr-defined]
-
-        for index, test in enumerate(self):
-            if result.shouldStop:
-                break
-
-            if _isnotsuite(test):
-                self._tearDownPreviousClass(test, result)  # type: ignore [attr-defined]
-                self._handleModuleFixture(test, result)  # type: ignore [attr-defined]
-                self._handleClassSetUp(test, result)  # type: ignore [attr-defined]
-                result._previousTestClass = test.__class__  # type: ignore
-                # [attr-defined]
-                if getattr(test.__class__, "_classSetupFailed", False) or getattr(
-                    result, "_moduleSetUpFailed", False
-                ):
-                    continue
-            if not debug:
-                start_time = time.perf_counter()
-                test(result)
-                if isinstance(result, RichTextTestResult) and isinstance(
-                    test, TestCase
-                ):
-                    duration = time.perf_counter() - start_time
-                    result.collectedDurations.append((test, duration))
-
-            else:
-                test.debug()
-
-            # if self._cleanup: # Assume folk are not running python's regression tests.
-            # https://github.com/python/cpython/commit/8913a6c8
-            self._removeTestAtIndex(index)  # type: ignore [attr-defined]
-
-        if topLevel:
-            self._tearDownPreviousClass(None, result)  # type: ignore [attr-defined]
-            self._handleModuleTearDown(result)  # type: ignore [attr-defined]
-            result._testRunEntered = False  # type: ignore [attr-defined]
-        return result
-
-
 class RichRunner(DiscoverRunner):
     pdb: bool  # django-stubs missing
 
     test_runner = RichTestRunner
-    test_suite = RichTestSuite
 
     # django-stubs bad return type, fixed in:
     # https://github.com/typeddjango/django-stubs/pull/1069
