@@ -40,8 +40,6 @@ class RichTextTestResult(unittest.TextTestResult):
     # https://github.com/python/typeshed/pull/7340
     showAll: bool
 
-    collectedDurations: list[tuple[TestCase, float]] = []
-
     def __init__(
         self,
         stream: TextIO,
@@ -53,6 +51,7 @@ class RichTextTestResult(unittest.TextTestResult):
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
+        self.collectedDurations: list[tuple[TestCase, float]] = []
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
