@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import heapq
 import io
 import sys
 import time
@@ -50,7 +51,7 @@ class RichTextTestResult(unittest.TextTestResult):
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
-        self.collectedDurations: list[tuple[TestCase, float]] = []
+        self.collectedDurations: list[tuple[float, TestCase]] = []
 
     def startTest(self, test: TestCase) -> None:
         self._timing_start = time.perf_counter_ns()
@@ -58,7 +59,11 @@ class RichTextTestResult(unittest.TextTestResult):
     def stopTest(self, test: TestCase) -> None:
         total = (time.perf_counter_ns() - self._timing_start) / 1e9
         if total >= 0.005:
-            self.collectedDurations.append((test, total))
+            item = (total, test)
+            if len(self.collectedDurations) == 100:
+                heapq.heappushpop(self.collectedDurations, item)
+            else:
+                heapq.heappush(self.collectedDurations, item)
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
@@ -203,11 +208,9 @@ class RichRunner(DiscoverRunner):
                 f"Slowest {amount_to_print} Tests",
                 DJANGO_GREEN_RULE,
             )
-            by_time = sorted(
-                result.collectedDurations, key=lambda x: x[1], reverse=True
-            )
-            by_time = by_time[:amount_to_print]
-            for test, timing in by_time:
+            result.collectedDurations.sort(reverse=True)
+            for i in range(amount_to_print):
+                timing, test = result.collectedDurations[i]
                 result.console.print(
                     f"[bold yellow]{float(timing):.3f}s[/bold yellow] {test}"
                 )
