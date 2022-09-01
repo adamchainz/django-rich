@@ -55,8 +55,10 @@ class RichTextTestResult(unittest.TextTestResult):
 
     def startTest(self, test: TestCase) -> None:
         self._timing_start = time.perf_counter_ns()
+        super().startTest(test)
 
     def stopTest(self, test: TestCase) -> None:
+        super().stopTest(test)
         total = (time.perf_counter_ns() - self._timing_start) / 1e9
         if total >= 0.005:
             item = (total, test)
