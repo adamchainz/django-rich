@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import argparse
 import heapq
 import io
 import sys
 import time
 import unittest
+from functools import partial
 from types import TracebackType
-from typing import Any, Iterable, TextIO, Tuple, Type, Union
+from typing import Any, Callable, Iterable, TextIO, Tuple, Type, Union
 from unittest.case import TestCase
 from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
 
@@ -45,6 +47,8 @@ class RichTextTestResult(unittest.TextTestResult):
         stream: TextIO,
         descriptions: bool,
         verbosity: int,
+        *,
+        slowest: int,
     ) -> None:
         super().__init__(stream, descriptions, verbosity)
         self.console = Console(
@@ -52,6 +56,7 @@ class RichTextTestResult(unittest.TextTestResult):
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
         self.collectedDurations: list[tuple[float, TestCase]] = []
+        self.slowest = slowest
 
     def startTest(self, test: TestCase) -> None:
         self._timing_start = time.perf_counter_ns()
@@ -62,7 +67,7 @@ class RichTextTestResult(unittest.TextTestResult):
         total = (time.perf_counter_ns() - self._timing_start) / 1e9
         if total >= 0.005:
             item = (total, test)
-            if len(self.collectedDurations) == 100:
+            if len(self.collectedDurations) == self.slowest:
                 heapq.heappushpop(self.collectedDurations, item)
             else:
                 heapq.heappush(self.collectedDurations, item)
@@ -179,21 +184,53 @@ class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc]
     resultclass = RichTextTestResult
 
 
+def positive_int(value: str) -> int:
+    try:
+        num = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("should be an integer")
+    if num < 1:
+        raise argparse.ArgumentTypeError("should be at least 1")
+    return num
+
+
 class RichRunner(DiscoverRunner):
     pdb: bool  # django-stubs missing
 
     test_runner = RichTestRunner
 
+    @classmethod
+    def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
+        super().add_arguments(parser)
+        parser.add_argument(
+            "--slowest",
+            nargs="?",
+            default=20,
+            type=positive_int,
+            metavar="num_slowest",
+            help=(
+                "The number of slow tests and setup/teardown methods to "
+                + "report when --timing is used."
+            ),
+        )
+
+    def __init__(self, *args: Any, slowest: int, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.slowest = slowest
+
     # django-stubs bad return type, fixed in:
     # https://github.com/typeddjango/django-stubs/pull/1069
     def get_resultclass(  # type: ignore [override]
         self,
-    ) -> type[unittest.TextTestResult] | None:
+    ) -> Callable[[], unittest.TextTestResult]:
+        klass: type[RichTextTestResult]
         if self.debug_sql:
-            return RichDebugSQLTextTestResult
+            klass = RichDebugSQLTextTestResult
         elif self.pdb:
-            return RichPDBDebugResult
-        return None
+            klass = RichPDBDebugResult
+        else:
+            klass = RichTextTestResult
+        return partial(klass, slowest=self.slowest)
 
     def suite_result(  # type: ignore [override]
         self,
@@ -203,15 +240,14 @@ class RichRunner(DiscoverRunner):
     ) -> int:
         time_keeper = self.time_keeper  # type: ignore [attr-defined]
         if result.collectedDurations and isinstance(time_keeper, TimeKeeper):
-            max_to_print = 100 if self.verbosity > 1 else 10
-            amount_to_print = min(len(result.collectedDurations), max_to_print)
+            num = min(len(result.collectedDurations), self.slowest)
             result.console.print(
                 DJANGO_GREEN_RULE,
-                f"Slowest {amount_to_print} Tests",
+                f"Slowest {num} Test{'s' if num != 1 else ''}",
                 DJANGO_GREEN_RULE,
             )
             result.collectedDurations.sort(reverse=True)
-            for i in range(amount_to_print):
+            for i in range(num):
                 timing, test = result.collectedDurations[i]
                 result.console.print(
                     f"[bold yellow]{float(timing):.3f}s[/bold yellow] {test}"
