@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import unittest
 import unittest.case
 from pathlib import Path
@@ -16,8 +17,24 @@ from django.test import SimpleTestCase, TestCase
 from django_rich.test import RichTestSuite
 
 
+def setUpModule():
+    time.sleep(0.15)
+
+
+def tearDownModule():
+    pass
+
+
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
 class ExampleTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        time.sleep(0.1)
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
     def test_pass(self):
         self.assertEqual(1, 1)
 
@@ -525,14 +542,14 @@ class TestRunnerTests(SimpleTestCase):
     def test_timing_normal(self):
         result = self.run_test("--timing", f"{__name__}.ExampleTests")
         assert result.returncode == 1
-        assert "Slowest 10 Tests" in result.stderr
+        assert "Slowest 11 Tests" in result.stderr
 
     def test_timing_normal_few_tests(self):
         result = self.run_test(
             "--timing", f"{__name__}.ExampleTests.test_failure_stderr"
         )
         assert result.returncode == 1
-        assert "Slowest 1 Tests" in result.stderr
+        assert "Slowest 3 Tests" in result.stderr
 
     def test_timing_verbose(self):
         result = self.run_test("--timing", f"{__name__}.ExampleTests", "-v", "2")
@@ -585,3 +602,15 @@ class TestRunnerTests(SimpleTestCase):
         wrapper.addTest(FooTest("test_a"))
         result = wrapper.run(unittest.TestResult())
         assert len(result.errors) == 1
+
+    def test_setupclass(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_pass", "--timing")
+        assert result.returncode == 0
+        assert (
+            "tests.test_test.ExampleTests.setUpClass" in result.stderr.splitlines()[-3]
+        )
+
+    def test_setupclass(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_pass", "--timing")
+        assert result.returncode == 0
+        assert "tests.test_test.setUpModule" in result.stderr.splitlines()[-4]

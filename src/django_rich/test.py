@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import heapq
 import io
+import logging
 import sys
 import time
 import unittest
@@ -184,6 +185,30 @@ class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc]
     resultclass = RichTextTestResult
 
 
+class RichTestSuite(unittest.TestSuite):
+    def _handleModuleFixture(self, test, result):
+        timing_start = time.perf_counter_ns()
+        super()._handleModuleFixture(test, result)
+        total = (time.perf_counter_ns() - timing_start) / 1e9
+        if total >= 0.005:
+            item = (total, f"{test.__module__}.setUpModule")
+            if len(result.collectedDurations) == result.slowest:
+                heapq.heappushpop(result.collectedDurations, item)
+            else:
+                heapq.heappush(result.collectedDurations, item)
+
+    def _handleClassSetUp(self, test, result):
+        timing_start = time.perf_counter_ns()
+        super()._handleClassSetUp(test, result)
+        total = (time.perf_counter_ns() - timing_start) / 1e9
+        if total >= 0.005:
+            item = (total, f"{test.__module__}.{test.__class__.__name__}.setUpClass")
+            if len(result.collectedDurations) == result.slowest:
+                heapq.heappushpop(result.collectedDurations, item)
+            else:
+                heapq.heappush(result.collectedDurations, item)
+
+
 def positive_int(value: str) -> int:
     try:
         num = int(value)
@@ -198,6 +223,7 @@ class RichRunner(DiscoverRunner):
     pdb: bool  # django-stubs missing
 
     test_runner = RichTestRunner
+    test_suite = RichTestSuite
 
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
