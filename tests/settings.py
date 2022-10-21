@@ -16,6 +16,7 @@ DATABASES: dict[str, dict[str, Any]] = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 INSTALLED_APPS = [
+    "django_rich",
     "tests.testapp",
 ]
 
