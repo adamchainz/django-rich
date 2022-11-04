@@ -4,16 +4,20 @@ import io
 import sys
 import unittest
 from types import TracebackType
-from typing import Iterable, TextIO, Tuple, Type, Union
+from typing import Iterable
+from typing import TextIO
+from typing import Tuple
+from typing import Type
+from typing import Union
 from unittest.case import TestCase
-from unittest.result import STDERR_LINE, STDOUT_LINE, failfast
+from unittest.result import failfast
+from unittest.result import STDERR_LINE
+from unittest.result import STDOUT_LINE
 
 from django.test import testcases
-from django.test.runner import (  # type: ignore [attr-defined]
-    DebugSQLTextTestResult,
-    DiscoverRunner,
-    PDBDebugResult,
-)
+from django.test.runner import DebugSQLTextTestResult
+from django.test.runner import DiscoverRunner
+from django.test.runner import PDBDebugResult  # type: ignore [attr-defined]
 from rich.color import Color
 from rich.console import Console
 from rich.rule import Rule

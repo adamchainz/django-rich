@@ -4,14 +4,14 @@ import os
 import re
 import subprocess
 import sys
-import unittest
 import unittest.case
 from pathlib import Path
 
 import django
 import pytest
 from django.db import connection
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase
+from django.test import TestCase
 
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
