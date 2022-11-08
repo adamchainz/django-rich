@@ -26,9 +26,7 @@ class ExampleTests(TestCase):
         self.assertEqual(1, 2)
 
     def test_failure_django_assertion(self):
-        # django-stubs doesn't know about assertURLEqual until:
-        # https://github.com/typeddjango/django-stubs/pull/1102
-        self.assertURLEqual("/url/", "/test/")  # type: ignore [attr-defined]
+        self.assertURLEqual("/url/", "/test/")
 
     def test_failure_sql_query(self):
         with connection.cursor() as cursor:

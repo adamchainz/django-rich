@@ -17,7 +17,7 @@ from unittest.result import STDOUT_LINE
 from django.test import testcases
 from django.test.runner import DebugSQLTextTestResult
 from django.test.runner import DiscoverRunner
-from django.test.runner import PDBDebugResult  # type: ignore [attr-defined]
+from django.test.runner import PDBDebugResult
 from rich.color import Color
 from rich.console import Console
 from rich.rule import Rule
@@ -157,24 +157,18 @@ class RichDebugSQLTextTestResult(DebugSQLTextTestResult, RichTextTestResult):
             self.console.print(sql_debug)
 
 
-class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):  # type: ignore [misc]
+class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
     pass
 
 
-class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc]
+class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc,valid-type]
     resultclass = RichTextTestResult
 
 
 class RichRunner(DiscoverRunner):
-    pdb: bool  # django-stubs missing
-
     test_runner = RichTestRunner
 
-    # django-stubs bad return type, fixed in:
-    # https://github.com/typeddjango/django-stubs/pull/1069
-    def get_resultclass(  # type: ignore [override]
-        self,
-    ) -> type[unittest.TextTestResult] | None:
+    def get_resultclass(self) -> type[unittest.TextTestResult] | None:
         if self.debug_sql:
             return RichDebugSQLTextTestResult
         elif self.pdb:
