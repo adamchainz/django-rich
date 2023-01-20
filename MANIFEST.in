@@ -1,4 +1,4 @@
-include HISTORY.rst
+include CHANGELOG.rst
 include img/*.png
 include LICENSE
 include pyproject.toml
