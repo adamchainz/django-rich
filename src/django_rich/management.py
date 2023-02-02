@@ -33,10 +33,7 @@ class RichCommand(BaseCommand):
 
         self._setup_console(stdout, no_color, force_color)
 
-        # django-stubs has Any type for execute()
-        # https://github.com/typeddjango/django-stubs/pull/1104
-        result: str | None = super().execute(*args, **options)
-        return result
+        return super().execute(*args, **options)
 
     def _setup_console(
         self,
