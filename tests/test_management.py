@@ -5,6 +5,7 @@ from inspect import Parameter
 from inspect import Signature
 from inspect import signature
 from io import StringIO
+import os
 from unittest import mock
 
 import pytest
@@ -32,6 +33,9 @@ class FakeTtyStringIO(StringIO):
         return True
 
 
+# python rich will disable color/style if TERM is set to "unknown" or "dumb"
+# https://rich.readthedocs.io/en/stable/console.html?highlight=unknown#environment-variables
+@mock.patch.dict(os.environ, TERM="")
 class RichCommandTests(SimpleTestCase):
     def test_init_signature(self):
         rc_signature = strip_annotations(signature(RichCommand.__init__))
