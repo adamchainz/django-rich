@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import os
 from functools import partial
 from inspect import Parameter
 from inspect import Signature
 from inspect import signature
 from io import StringIO
+from typing import Any
 from unittest import mock
 
 import pytest
 from django.core.management import BaseCommand
-from django.core.management import call_command
+from django.core.management import call_command as base_call_command
 from django.core.management import CommandError
 from django.test import SimpleTestCase
 from rich.console import Console
@@ -30,6 +32,12 @@ def strip_annotations(original: Signature) -> Signature:
 class FakeTtyStringIO(StringIO):
     def isatty(self) -> bool:
         return True
+
+
+def call_command(*args: str, **kwargs: Any) -> None:
+    # Ensure rich uses colouring and consistent width
+    with mock.patch.dict(os.environ, TERM="", COLUMNS="80"):
+        base_call_command(*args, **kwargs)
 
 
 class RichCommandTests(SimpleTestCase):
