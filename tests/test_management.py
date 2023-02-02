@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import os
 from functools import partial
 from inspect import Parameter
 from inspect import Signature
 from inspect import signature
 from io import StringIO
-import os
 from unittest import mock
 
 import pytest
