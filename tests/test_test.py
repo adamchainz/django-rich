@@ -91,6 +91,9 @@ class TestRunnerTests(SimpleTestCase):
                 **os.environ,
                 "DJANGO_SETTINGS_MODULE": "tests.settings",
                 "COVERAGE_PROCESS_START": str(SETUP_CFG_PATH),
+                # Ensure rich uses colouring and consistent width
+                "TERM": "",
+                "COLUMNS": "80",
             },
         )
 
