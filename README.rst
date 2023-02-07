@@ -44,6 +44,8 @@ Installation
 
        python -m pip install django-rich
 
+None of django-rich’s features are activated by default.
+Follow the documentation below to use them.
 
 Reference
 ---------
