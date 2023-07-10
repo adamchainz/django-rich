@@ -23,7 +23,7 @@ Extensions for using `Rich <https://rich.readthedocs.io/>`__ with Django.
 Requirements
 ------------
 
-Python 3.7 to 3.12 supported.
+Python 3.8 to 3.12 supported.
 
 Django 3.2 to 4.2 supported.
 
