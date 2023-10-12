@@ -63,16 +63,24 @@ __ https://docs.djangoproject.com/en/stable/howto/custom-management-commands/#dj
 .. |Console| replace:: ``Console``
 __ https://rich.readthedocs.io/en/stable/console.html
 
-You can use ``self.console`` like so:
+Use the features of ``self.console`` as you like:
 
 .. code-block:: python
+
+    from time import sleep
 
     from django_rich.management import RichCommand
 
 
     class Command(RichCommand):
         def handle(self, *args, **options):
-            self.console.print("[bold red]Alert![/bold red]")
+            self.console.print("[bold blue]Frobnicating widgets:[/bold blue]")
+
+            with self.console.status("Starting...") as status:
+                for i in range(1, 11):
+                    status.update(f"Widget {i}...")
+                    sleep(1)
+                    self.console.log(f"Widget {i} frobnicated.")
 
 You can customize the construction of the ``Console`` by overriding the ``make_rich_console`` class attribute.
 This should be a callable that returns a ``Console``, such as a |functools.partial|__.
