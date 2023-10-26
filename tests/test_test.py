@@ -69,7 +69,7 @@ class ExampleTests(TestCase):
         self.assertTrue(False)
 
 
-SETUP_CFG_PATH = Path(__file__).resolve().parent.parent / "setup.cfg"
+PYPROJECT_PATH = Path(__file__).resolve().parent.parent / "pyproject.toml"
 
 
 class TestRunnerTests(SimpleTestCase):
@@ -90,7 +90,7 @@ class TestRunnerTests(SimpleTestCase):
             env={
                 **os.environ,
                 "DJANGO_SETTINGS_MODULE": "tests.settings",
-                "COVERAGE_PROCESS_START": str(SETUP_CFG_PATH),
+                "COVERAGE_PROCESS_START": str(PYPROJECT_PATH),
                 # Ensure rich uses colouring and consistent width
                 "TERM": "",
                 "COLUMNS": "80",
