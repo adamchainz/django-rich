@@ -36,9 +36,8 @@ class ExampleTests(TestCase):
             )
         self.assertTrue(False)
 
-    @unittest.skip("some reason")
-    def test_skip(self):  # pragma: no cover
-        raise ValueError("never run")
+    def test_skip(self):
+        self.skipTest("some reason")
 
     @unittest.expectedFailure
     def test_expected_failure(self):
