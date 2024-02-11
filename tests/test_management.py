@@ -11,8 +11,8 @@ from unittest import mock
 
 import pytest
 from django.core.management import BaseCommand
-from django.core.management import call_command as base_call_command
 from django.core.management import CommandError
+from django.core.management import call_command as base_call_command
 from django.test import SimpleTestCase
 from rich.console import Console
 

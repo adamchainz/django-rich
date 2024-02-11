@@ -10,9 +10,9 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 from unittest.case import TestCase
-from unittest.result import failfast
 from unittest.result import STDERR_LINE
 from unittest.result import STDOUT_LINE
+from unittest.result import failfast
 
 from django.test import testcases
 from django.test.runner import DebugSQLTextTestResult
