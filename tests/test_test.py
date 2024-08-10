@@ -535,7 +535,8 @@ class TestRunnerTests(SimpleTestCase):
         ]
 
     durations_test = pytest.mark.skipif(
-        sys.version_info < (3, 12), reason="unittest --durations only on Python 3.12+"
+        sys.version_info < (3, 12) or django.VERSION < (5, 0),
+        reason="unittest --durations only on Python 3.12+ and Django 5.0+",
     )
 
     @durations_test
