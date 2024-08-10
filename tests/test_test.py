@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+import inspect
 import os
 import re
 import subprocess
 import sys
+import time
 import unittest.case
 from pathlib import Path
+from textwrap import dedent
 
 import django
 import pytest
 from django.db import connection
 from django.test import SimpleTestCase
 from django.test import TestCase
+from django.test.runner import DiscoverRunner
 
 
 @pytest.mark.skip(reason="Run below via Django unittest subprocess.")
@@ -67,11 +71,21 @@ class ExampleTests(TestCase):
         print("This is some example output", end="", file=sys.stderr)
         self.assertTrue(False)
 
+    def test_slow(self):
+        # Ensure over the 0.001s threshold
+        time.sleep(0.002)
+
 
 PYPROJECT_PATH = Path(__file__).resolve().parent.parent / "pyproject.toml"
 
 
 class TestRunnerTests(SimpleTestCase):
+    def test_test_runner_base_class(self):
+        # RichTestRunner currently inherits from unittest.TextTestRunner, which
+        # is what Django’s DiscoverRunner uses by default. This test ensures
+        # that has not changed in a future Django version.
+        assert DiscoverRunner.test_runner is unittest.TextTestRunner
+
     def run_test(
         self, *args: str, input: str | None = None
     ) -> subprocess.CompletedProcess[str]:
@@ -518,4 +532,124 @@ class TestRunnerTests(SimpleTestCase):
             "This is some example output",
             "",
             "-" * 70,
+        ]
+
+    durations_test = pytest.mark.skipif(
+        sys.version_info < (3, 12), reason="unittest --durations only on Python 3.12+"
+    )
+
+    @durations_test
+    def test_durations_upstream_source(self):
+        # RichTestRunner completely replaces _printDurations(), so check the
+        # overriden function for changes that may need copying in.
+        source = dedent(
+            inspect.getsource(
+                unittest.TextTestRunner._printDurations,  # type: ignore[attr-defined]
+            )
+        )
+        expected = dedent(
+            """\
+            def _printDurations(self, result):
+                if not result.collectedDurations:
+                    return
+                ls = sorted(result.collectedDurations, key=lambda x: x[1],
+                            reverse=True)
+                if self.durations > 0:
+                    ls = ls[:self.durations]
+                self.stream.writeln("Slowest test durations")
+                if hasattr(result, 'separator2'):
+                    self.stream.writeln(result.separator2)
+                hidden = False
+                for test, elapsed in ls:
+                    if self.verbosity < 2 and elapsed < 0.001:
+                        hidden = True
+                        continue
+                    self.stream.writeln("%-10s %s" % ("%.3fs" % elapsed, test))
+                if hidden:
+                    self.stream.writeln("\\n(durations < 0.001s were hidden; "
+                                        "use -v to show these durations)")
+                else:
+                    self.stream.writeln("")
+            """
+        )
+        assert source == expected
+
+    @durations_test
+    def test_durations_shown(self):
+        result = self.run_test(
+            "--durations", "10", f"{__name__}.ExampleTests.test_slow"
+        )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[2:6] == [
+            "                     Slowest test durations                      ",
+            "┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃ Duration ┃ Test                                               ┃",
+            "┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩",
+        ]
+        assert re.fullmatch(
+            re.escape("│   ")
+            + r"\d.\d\d\ds "
+            + re.escape("│ test_slow (tests.test_test.ExampleTests.test_slow) │"),
+            lines[6],
+        )
+        assert lines[7:8] == [
+            "└──────────┴────────────────────────────────────────────────────┘",
+        ]
+
+    @durations_test
+    def test_durations_hidden(self):
+        result = self.run_test(
+            "--durations", "10", f"{__name__}.ExampleTests.test_pass"
+        )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[2:5] == [
+            "Slowest test durations",
+            "",
+            "Durations < 0.001s were hidden. Use -v to show these durations.",
+        ]
+
+    @durations_test
+    def test_durations_verbose(self):
+        result = self.run_test(
+            "--durations", "10", "-v", "2", f"{__name__}.ExampleTests.test_pass"
+        )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[3:9] == [
+            "                     Slowest test durations                      ",
+            "┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃ Duration ┃ Test                                               ┃",
+            "┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩",
+            "│   0.000s │ test_pass (tests.test_test.ExampleTests.test_pass) │",
+            "└──────────┴────────────────────────────────────────────────────┘",
+        ]
+
+    @durations_test
+    def test_durations_shown_hidden(self):
+        result = self.run_test(
+            "--durations",
+            "10",
+            f"{__name__}.ExampleTests.test_pass",
+            f"{__name__}.ExampleTests.test_slow",
+        )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[2:6] == [
+            "                     Slowest test durations                      ",
+            "┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃ Duration ┃ Test                                               ┃",
+            "┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩",
+        ]
+        assert re.fullmatch(
+            re.escape("│   ")
+            + r"\d.\d\d\ds "
+            + re.escape("│ test_slow (tests.test_test.ExampleTests.test_slow) │"),
+            lines[6],
+        )
+        assert lines[7:10] == [
+            "└──────────┴────────────────────────────────────────────────────┘",
+            "",
+            "Durations < 0.001s were hidden. Use -v to show these durations.",
         ]
