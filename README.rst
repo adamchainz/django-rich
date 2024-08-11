@@ -67,6 +67,7 @@ __ https://docs.djangoproject.com/en/stable/ref/django-admin/#shell
        ]
 
 This feature only affects the Python and bypthon interpreters, not IPython.
+For IPython support, see `the Rich documentation <https://rich.readthedocs.io/en/stable/introduction.html#ipython-extension>`__.
 
 ``django_rich.management.RichCommand``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
