@@ -7,6 +7,6 @@ from rich import pretty
 
 
 class Command(BaseCommand):
-    def handle(self, **options: Any) -> str | None:
+    def handle(self, **options: Any) -> None:
         pretty.install()
         return super().handle(**options)
