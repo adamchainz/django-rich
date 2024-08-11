@@ -2,6 +2,11 @@
 Changelog
 =========
 
+* Add a ``shell`` command extension that enables Rich’s pretty-printing.
+  Activate this feature by adding ``django_rich`` to your ``INSTALLED_APPS`` setting.
+
+  Thanks to q0w in `PR #78 <https://github.com/adamchainz/django-rich/pull/78>`__.
+
 1.9.0 (2024-06-19)
 ------------------
 
