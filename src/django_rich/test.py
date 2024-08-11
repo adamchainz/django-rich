@@ -4,6 +4,7 @@ import io
 import sys
 import unittest
 from types import TracebackType
+from typing import Any
 from typing import Iterable
 from typing import TextIO
 from typing import Tuple
@@ -46,10 +47,10 @@ class RichTextTestResult(unittest.TextTestResult):
     def __init__(
         self,
         stream: TextIO,
-        descriptions: bool,
-        verbosity: int,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(stream, descriptions, verbosity)
+        super().__init__(stream, *args, **kwargs)
         self.console = Console(
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
