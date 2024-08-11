@@ -576,10 +576,52 @@ class TestRunnerTests(SimpleTestCase):
         assert source == expected
 
     @durations_test
+    def test_durations_none(self):
+        result = self.run_test(
+            "--durations",
+            "10",
+            f"{__name__}.ExampleTests.test_slow",
+            "--tag",
+            "nonexistent",
+        )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[0:2] == [
+            "",
+            "----------------------------------------------------------------------",
+        ]
+        assert re.fullmatch(r"Ran 0 tests in \d\.\d\d\ds", lines[2])
+        assert lines[3:] == [
+            "",
+            "NO TESTS RAN",
+        ]
+
+    @durations_test
     def test_durations_shown(self):
         result = self.run_test(
             "--durations", "10", f"{__name__}.ExampleTests.test_slow"
         )
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[2:6] == [
+            "                     Slowest test durations                      ",
+            "┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃ Duration ┃ Test                                               ┃",
+            "┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩",
+        ]
+        assert re.fullmatch(
+            re.escape("│   ")
+            + r"\d.\d\d\ds "
+            + re.escape("│ test_slow (tests.test_test.ExampleTests.test_slow) │"),
+            lines[6],
+        )
+        assert lines[7:8] == [
+            "└──────────┴────────────────────────────────────────────────────┘",
+        ]
+
+    @durations_test
+    def test_durations_zero(self):
+        result = self.run_test("--durations", "0", f"{__name__}.ExampleTests.test_slow")
         assert result.returncode == 0
         lines = result.stderr.splitlines()
         assert lines[2:6] == [
