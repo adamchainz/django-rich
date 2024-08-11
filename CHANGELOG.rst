@@ -7,7 +7,7 @@ Changelog
 
   Thanks to q0w in `PR #78 <https://github.com/adamchainz/django-rich/pull/78>`__.
 
-* Extend test runner to display test durations from |--durations|__ in a table.
+* Extend test runner to display test durations from |--durations|__ in a Rich table.
 
   .. |--durations| replace:: ``--durations``
   __ https://docs.djangoproject.com/en/stable/ref/django-admin/#cmdoption-test-durations
