@@ -49,6 +49,25 @@ Follow the documentation below to use them.
 Reference
 ---------
 
+``shell`` command integration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+django-rich has an extended version of Django’s built-in |shell command|__ that enables `Rich’s pretty-printing <https://rich.readthedocs.io/en/stable/introduction.html?highlight=install#rich-in-the-repl>`__.
+To activate this feature, add ``django_rich`` to your ``INSTALLED_APPS`` setting:
+
+.. |shell command| replace:: ``shell`` command
+__ https://docs.djangoproject.com/en/stable/ref/django-admin/#shell
+
+   .. code-block:: python
+
+       INSTALLED_APPS = [
+           ...,
+           "django_rich",
+           ...,
+       ]
+
+This feature only affects the Python and bypthon interpreters, not IPython.
+
 ``django_rich.management.RichCommand``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
