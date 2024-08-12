@@ -137,7 +137,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_pass")
         assert result.returncode == 0
         assert result.stderr.splitlines()[:1] == [
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_pass_normal(self):
@@ -145,7 +145,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 0
         assert result.stderr.splitlines()[1:3] == [
             ".",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_pass_verbose(self):
@@ -156,13 +156,13 @@ class TestRunnerTests(SimpleTestCase):
             assert lines[1:4] == [
                 "test_pass (tests.test_test.ExampleTests.test_pass) ... ok",
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
         else:
             assert lines[1:4] == [
                 "test_pass (tests.test_test.ExampleTests) ... ok",
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
 
     def test_error_quiet(self):
@@ -277,7 +277,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_skip")
         assert result.returncode == 0
         assert result.stderr.splitlines()[:1] == [
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_skip_normal(self):
@@ -285,7 +285,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 0
         assert result.stderr.splitlines()[1:3] == [
             "s",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_skip_verbose(self):
@@ -299,13 +299,13 @@ class TestRunnerTests(SimpleTestCase):
                     + "skipped 'some reason'"
                 ),
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
         else:
             assert lines[1:4] == [
                 "test_skip (tests.test_test.ExampleTests) ... skipped 'some reason'",
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
 
     def test_expected_failure_quiet(self):
@@ -314,7 +314,7 @@ class TestRunnerTests(SimpleTestCase):
         )
         assert result.returncode == 0
         assert result.stderr.splitlines()[:1] == [
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_expected_failure_normal(self):
@@ -322,7 +322,7 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 0
         assert result.stderr.splitlines()[1:3] == [
             "x",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_expected_failure_verbose(self):
@@ -338,7 +338,7 @@ class TestRunnerTests(SimpleTestCase):
                     + "test_expected_failure) ... expected failure"
                 ),
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
         else:
             assert lines[1:4] == [
@@ -347,7 +347,7 @@ class TestRunnerTests(SimpleTestCase):
                     + "expected failure"
                 ),
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
 
     def test_unexpected_success_quiet(self):
@@ -361,9 +361,9 @@ class TestRunnerTests(SimpleTestCase):
             assert result.returncode == 0
         lines = result.stderr.splitlines()
         if sys.version_info >= (3, 11):
-            assert lines[:1] == ["=" * 70]
+            assert lines[:1] == ["═" * 80]
         else:
-            assert lines[:1] == ["-" * 70]
+            assert lines[:1] == ["━" * 80]
 
     def test_unexpected_success_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_unexpected_success")
@@ -376,12 +376,12 @@ class TestRunnerTests(SimpleTestCase):
         if sys.version_info >= (3, 11):
             assert lines[1:3] == [
                 "u",
-                "=" * 70,
+                "═" * 80,
             ]
         else:
             assert lines[1:3] == [
                 "u",
-                "-" * 70,
+                "━" * 80,
             ]
 
     def test_unexpected_success_verbose(self):
@@ -400,7 +400,7 @@ class TestRunnerTests(SimpleTestCase):
                     + "test_unexpected_success) ... unexpected success"
                 ),
                 "",
-                "=" * 70,
+                "═" * 80,
             ]
         else:
             assert lines[1:4] == [
@@ -409,7 +409,7 @@ class TestRunnerTests(SimpleTestCase):
                     + "... unexpected success"
                 ),
                 "",
-                "-" * 70,
+                "━" * 80,
             ]
 
     def test_debug_sql(self):
@@ -435,7 +435,7 @@ class TestRunnerTests(SimpleTestCase):
         assert re.match(sql_line_re, lines[-7])
         assert lines[-6:-4] == [
             "",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_pdb(self):
@@ -489,7 +489,7 @@ class TestRunnerTests(SimpleTestCase):
             "Stdout:",
             "This is some example output",
             "",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_buffer_stdout_no_newline(self):
@@ -503,7 +503,7 @@ class TestRunnerTests(SimpleTestCase):
             "Stdout:",
             "This is some example output",
             "",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_buffer_stderr(self):
@@ -517,7 +517,7 @@ class TestRunnerTests(SimpleTestCase):
             "Stderr:",
             "This is some example output",
             "",
-            "-" * 70,
+            "━" * 80,
         ]
 
     def test_buffer_stderr_no_newline(self):
@@ -531,7 +531,7 @@ class TestRunnerTests(SimpleTestCase):
             "Stderr:",
             "This is some example output",
             "",
-            "-" * 70,
+            "━" * 80,
         ]
 
     durations_test = pytest.mark.skipif(
@@ -588,7 +588,7 @@ class TestRunnerTests(SimpleTestCase):
         lines = result.stderr.splitlines()
         assert lines[0:2] == [
             "",
-            "----------------------------------------------------------------------",
+            "━" * 80,
         ]
         assert re.fullmatch(r"Ran 0 tests in \d\.\d\d\ds", lines[2])
         assert lines[3:] == [
