@@ -55,6 +55,12 @@ class RichTextTestResult(unittest.TextTestResult):
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
         )
+        with self.console.capture() as cap:
+            self.console.print(Rule(characters="═", style=DJANGO_GREEN))
+        self.separator1 = cap.get().rstrip("\n")
+        with self.console.capture() as cap:
+            self.console.print(Rule(characters="━", style=DJANGO_GREEN))
+        self.separator2 = cap.get().rstrip("\n")
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:

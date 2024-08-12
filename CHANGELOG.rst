@@ -14,6 +14,10 @@ Changelog
 
   `PR #213 <https://github.com/adamchainz/django-rich/pull/213>`__.
 
+* Make test runner use Rich rules between output sections.
+
+  `PR #216 <https://github.com/adamchainz/django-rich/pull/216>`__.
+
 1.9.0 (2024-06-19)
 ------------------
 
