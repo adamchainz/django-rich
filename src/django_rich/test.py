@@ -4,11 +4,13 @@ import io
 import sys
 import unittest
 from types import TracebackType
+from typing import Any
 from typing import Iterable
 from typing import TextIO
 from typing import Tuple
 from typing import Type
 from typing import Union
+from typing import cast
 from unittest.case import TestCase
 from unittest.result import STDERR_LINE
 from unittest.result import STDOUT_LINE
@@ -22,6 +24,7 @@ from rich.color import Color
 from rich.console import Console
 from rich.rule import Rule
 from rich.style import Style
+from rich.table import Table
 from rich.traceback import Traceback
 
 _SysExcInfoType = Union[
@@ -44,10 +47,10 @@ class RichTextTestResult(unittest.TextTestResult):
     def __init__(
         self,
         stream: TextIO,
-        descriptions: bool,
-        verbosity: int,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(stream, descriptions, verbosity)
+        super().__init__(stream, *args, **kwargs)
         self.console = Console(
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
             file=self.stream.stream,  # type: ignore [attr-defined]
@@ -161,8 +164,36 @@ class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
     pass
 
 
-class RichTestRunner(DiscoverRunner.test_runner):  # type: ignore [misc,valid-type]
+class RichTestRunner(unittest.TextTestRunner):
     resultclass = RichTextTestResult
+
+    def _printDurations(self, result: RichTextTestResult) -> None:
+        if not result.collectedDurations:
+            return
+        ls = sorted(result.collectedDurations, key=lambda x: x[1], reverse=True)
+        if cast(int, self.durations) > 0:  # typeshed has a bad hint (?!)
+            ls = ls[: cast(int, self.durations)]
+
+        table = Table(title="Slowest test durations", title_style=YELLOW)
+        table.add_column("Duration", justify="right", no_wrap=True)
+        table.add_column("Test")
+
+        hidden = False
+        for test, elapsed in ls:
+            if self.verbosity < 2 and elapsed < 0.001:
+                hidden = True
+                continue
+            table.add_row("%.3fs" % elapsed, test)
+        if hidden:
+            table.caption = (
+                "Durations < 0.001s were hidden. Use -v to show these durations."
+            )
+
+        if table.rows:
+            result.console.print(table)
+        else:
+            result.console.print(table.title, style=table.title_style)
+            result.console.print(table.caption, style="table.caption", highlight=False)
 
 
 class RichRunner(DiscoverRunner):
