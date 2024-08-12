@@ -12,6 +12,8 @@ Changelog
   .. |--durations| replace:: ``--durations``
   __ https://docs.djangoproject.com/en/stable/ref/django-admin/#cmdoption-test-durations
 
+  `PR #213 <https://github.com/adamchainz/django-rich/pull/213>`__.
+
 1.9.0 (2024-06-19)
 ------------------
 
