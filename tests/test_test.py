@@ -620,7 +620,7 @@ class TestRunnerTests(SimpleTestCase):
         ]
 
     @durations_test
-    def test_durations_zero(self):
+    def test_durations_all(self):
         result = self.run_test("--durations", "0", f"{__name__}.ExampleTests.test_slow")
         assert result.returncode == 0
         lines = result.stderr.splitlines()
@@ -647,9 +647,8 @@ class TestRunnerTests(SimpleTestCase):
         )
         assert result.returncode == 0
         lines = result.stderr.splitlines()
-        assert lines[2:5] == [
+        assert lines[2:4] == [
             "Slowest test durations",
-            "",
             "Durations < 0.001s were hidden. Use -v to show these durations.",
         ]
 
@@ -691,8 +690,7 @@ class TestRunnerTests(SimpleTestCase):
             + re.escape("│ test_slow (tests.test_test.ExampleTests.test_slow) │"),
             lines[6],
         )
-        assert lines[7:10] == [
+        assert lines[7:9] == [
             "└──────────┴────────────────────────────────────────────────────┘",
-            "",
-            "Durations < 0.001s were hidden. Use -v to show these durations.",
+            " Durations < 0.001s were hidden. Use -v to show these durations. ",
         ]

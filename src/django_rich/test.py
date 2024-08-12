@@ -184,16 +184,19 @@ class RichTestRunner(unittest.TextTestRunner):
                 hidden = True
                 continue
             table.add_row("%.3fs" % elapsed, test)
+        if hidden:
+            table.caption = (
+                "Durations < 0.001s were hidden. Use -v to show these durations."
+            )
 
         if table.rows:
             result.console.print(table)
         else:
             result.console.print(table.title, style=table.title_style)
-        if hidden:
-            result.console.print(
-                "\n[i]Durations < 0.001s were hidden. Use -v to show these durations.[/i]",
-                highlight=False,
-            )
+            if hidden:
+                result.console.print(
+                    table.caption, style="table.caption", highlight=False
+                )
 
 
 class RichRunner(DiscoverRunner):
