@@ -193,10 +193,7 @@ class RichTestRunner(unittest.TextTestRunner):
             result.console.print(table)
         else:
             result.console.print(table.title, style=table.title_style)
-            if hidden:
-                result.console.print(
-                    table.caption, style="table.caption", highlight=False
-                )
+            result.console.print(table.caption, style="table.caption", highlight=False)
 
 
 class RichRunner(DiscoverRunner):
