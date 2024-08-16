@@ -12,8 +12,10 @@ from typing import Type
 from typing import Union
 from typing import cast
 from unittest.case import TestCase
+from unittest.case import _SubTest  # type: ignore [attr-defined]
 from unittest.result import STDERR_LINE
 from unittest.result import STDOUT_LINE
+from unittest.result import TestResult
 from unittest.result import failfast
 
 from django.test import testcases
@@ -29,7 +31,6 @@ from rich.traceback import Traceback
 
 _SysExcInfoType = Union[
     Tuple[Type[BaseException], BaseException, TracebackType],
-    Tuple[Type[BaseException], BaseException, None],
     Tuple[None, None, None],
 ]
 
@@ -43,6 +44,9 @@ class RichTextTestResult(unittest.TextTestResult):
     # Declaring attribute since typeshed had wrong capitalization
     # https://github.com/python/typeshed/pull/7340
     showAll: bool
+
+    # Declaring attribute as _newline was added in Python 3.11.
+    _newline: bool
 
     def __init__(
         self,
@@ -61,10 +65,17 @@ class RichTextTestResult(unittest.TextTestResult):
         with self.console.capture() as cap:
             self.console.print(Rule(characters="━", style=DJANGO_GREEN))
         self.separator2 = cap.get().rstrip("\n")
+        if sys.version_info < (3, 11):
+            self._newline = True
+
+    def startTest(self, test: TestCase) -> None:
+        super().startTest(test)
+        if sys.version_info < (3, 11):
+            self._newline = False
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
-            self.console.print("ok", style=DJANGO_GREEN)
+            self._write_status(test, "ok")
         elif self.dots:
             self.console.print(".", style=DJANGO_GREEN, end="")
 
@@ -73,7 +84,7 @@ class RichTextTestResult(unittest.TextTestResult):
         self.errors.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            self.console.print("ERROR", style=RED)
+            self._write_status(test, "ERROR")
         elif self.dots:
             self.console.print("E", style=RED, end="")
 
@@ -82,14 +93,14 @@ class RichTextTestResult(unittest.TextTestResult):
         self.failures.append((test, self._exc_info_to_string(err, test)))
         self._mirrorOutput = True
         if self.showAll:
-            self.console.print("FAIL", style=RED)
+            self._write_status(test, "FAIL")
         elif self.dots:
             self.console.print("F", style=RED, end="")
 
     def addSkip(self, test: TestCase, reason: str) -> None:
         self.skipped.append((test, reason))
         if self.showAll:
-            self.console.print(f"skipped {reason!r}", style=YELLOW)
+            self._write_status(test, f"skipped {reason!r}")
         elif self.dots:
             self.console.print("s", style=YELLOW, end="")
 
@@ -117,6 +128,41 @@ class RichTextTestResult(unittest.TextTestResult):
             title = f"{flavour}: {self.getDescription(test)}"
             self.console.print(DJANGO_GREEN_RULE, title, DJANGO_GREEN_RULE)
             self.stream.write("%s\n" % err)
+
+    def _write_status(self, test: TestCase, status: str) -> None:
+        is_subtest = isinstance(test, _SubTest)
+        if is_subtest or self._newline:
+            if not self._newline:
+                self.console.print("\n", end="")
+            if is_subtest:
+                self.console.print("  ", end="")
+            self.console.print(self.getDescription(test), end="")
+            self.console.print(" ... ", end="")
+        if status == "FAIL":
+            self.console.print("FAIL", style=RED)
+        elif status == "ERROR":
+            self.console.print("ERROR", style=RED)
+        elif status.startswith("skipped"):
+            self.console.print(status, style=YELLOW)
+        else:
+            self.console.print(status, style=DJANGO_GREEN)
+        self._newline = True
+
+    def addSubTest(
+        self, test: TestCase, subtest: TestCase, err: _SysExcInfoType | None
+    ) -> None:
+        if err is not None:
+            if self.showAll:
+                if issubclass(err[0], subtest.failureException):  # type: ignore [arg-type]
+                    self._write_status(subtest, "FAIL")
+                else:
+                    self._write_status(subtest, "ERROR")
+            elif self.dots:
+                if issubclass(err[0], subtest.failureException):  # type: ignore [arg-type]
+                    self.console.print("F", style=RED, end="")
+                else:
+                    self.console.print("E", style=RED, end="")
+        TestResult.addSubTest(self, test, subtest, err)
 
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
         """Converts a sys.exc_info()-style tuple of values into a string."""
