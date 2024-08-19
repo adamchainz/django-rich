@@ -40,10 +40,6 @@ YELLOW = Style(color="yellow")
 
 
 class RichTextTestResult(unittest.TextTestResult):
-    # Declaring attribute since typeshed had wrong capitalization
-    # https://github.com/python/typeshed/pull/7340
-    showAll: bool
-
     def __init__(
         self,
         stream: TextIO,
