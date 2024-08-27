@@ -836,16 +836,16 @@ class TestRunnerTests(SimpleTestCase):
         )
         assert result.returncode == 1
         lines = result.stderr.splitlines()
-        if sys.version_info >= (3,11):
+        if sys.version_info >= (3, 11):
             assert lines[:2] == [
-            "─" * 80,
-            "FAIL: test_failure_subtest (tests.test_test.ExampleTests.test_failure_subtest) ",
-        ]
+                "─" * 80,
+                "FAIL: test_failure_subtest (tests.test_test.ExampleTests.test_failure_subtest) ",
+            ]
         else:
             assert lines[:2] == [
-            "─" * 80,
-            "FAIL: test_failure_subtest (tests.test_test.ExampleTests) (i=1)",
-        ]
+                "─" * 80,
+                "FAIL: test_failure_subtest (tests.test_test.ExampleTests) (i=1)",
+            ]
 
     def test_failure_subtest(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_failure_subtest")
