@@ -41,10 +41,6 @@ YELLOW = Style(color="yellow")
 
 
 class RichTextTestResult(unittest.TextTestResult):
-    # Declaring attribute since typeshed had wrong capitalization
-    # https://github.com/python/typeshed/pull/7340
-    showAll: bool
-
     # Declaring attribute as _newline was added in Python 3.11.
     _newline: bool
 
