@@ -518,7 +518,7 @@ class TestRunnerTests(SimpleTestCase):
         assert lines[: len(expected)] == expected
 
         assert lines[len(expected) + 1 : len(expected) + 4] == [
-            "-> raise self.failureException(msg)",
+            "-> self.assertEqual(1, 2)",
             "(Pdb) 4",
             "(Pdb) ",
         ]
