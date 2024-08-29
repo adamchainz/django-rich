@@ -329,7 +329,7 @@ class TestRunnerTests(SimpleTestCase):
 
     @pytest.mark.skipif(
         sys.version_info < (3, 9),
-        "Fix only backported to Python 3.10",
+        reason="Traceback cleaning only on Python 3.10+",
     )
     def test_failure_stack_frames(self):
         result = self.run_test(
