@@ -75,6 +75,57 @@ class ExampleTests(TestCase):
         # Ensure over the 0.001s threshold
         time.sleep(0.002)
 
+    def test_subtest(self):
+        for i in range(0, 2):
+            with self.subTest(i=i):
+                self.assertEqual(i, i)
+
+    def test_failure_subtest(self):
+        for i in range(0, 2):
+            with self.subTest(i=i):
+                # 1 is not even.
+                self.assertEqual(i % 2, 0)
+
+    def test_skip_subtest(self):
+        with self.subTest("success", a=1):
+            pass
+        with self.subTest("skip", b=2):
+            self.skipTest("skip")
+
+    def test_mixed_subtest(self):
+        with self.subTest("success", a=1):
+            pass
+        with self.subTest("skip", b=2):
+            self.skipTest("skip")
+        with self.subTest("error", c=3):  # type: ignore [unreachable]
+            self.fail("fail")
+        with self.subTest("error", d=4):
+            raise Exception("error")
+
+
+@pytest.mark.skip(reason="Run below via Django unittest subprocess.")
+class TearDownFailTests(TestCase):
+    def tearDown(self):
+        raise AssertionError("fail")
+
+    def test_tearDownError_success(self):
+        self.assertEqual(1, 1)
+
+    def test_tearDownError_fail(self):
+        self.assertEqual(1, 2)
+
+    def test_tearDownError_error(self):
+        raise ValueError("Woops")
+
+
+@pytest.mark.skip(reason="Run below via Django unittest subprocess.")
+class TearDownErrorTests(TestCase):
+    def tearDown(self):
+        raise Exception("error")
+
+    def test_tearDownError_skip(self):
+        self.skipTest("skip")
+
 
 PYPROJECT_PATH = Path(__file__).resolve().parent.parent / "pyproject.toml"
 
@@ -354,7 +405,6 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test(
             "-v", "0", f"{__name__}.ExampleTests.test_unexpected_success"
         )
-
         if django.VERSION >= (4, 1):
             assert result.returncode == 1
         else:
@@ -694,3 +744,271 @@ class TestRunnerTests(SimpleTestCase):
             "└──────────┴────────────────────────────────────────────────────┘",
             " Durations < 0.001s were hidden. Use -v to show these durations. ",
         ]
+
+    sub_test_test = pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="addSubTest added in Python 3.11.",
+    )
+
+    @sub_test_test
+    def test_subtest_upstream_source(self):
+        # RichTextTestResult completely replaces _addSubTest(), so check the
+        # overriden function for changes that may need copying in.
+        source = dedent(
+            inspect.getsource(
+                unittest.TextTestResult.addSubTest,
+            )
+        )
+        expected = dedent(
+            """\
+            def addSubTest(self, test, subtest, err):
+                if err is not None:
+                    if self.showAll:
+                        if issubclass(err[0], subtest.failureException):
+                            self._write_status(subtest, "FAIL")
+                        else:
+                            self._write_status(subtest, "ERROR")
+                    elif self.dots:
+                        if issubclass(err[0], subtest.failureException):
+                            self.stream.write('F')
+                        else:
+                            self.stream.write('E')
+                        self.stream.flush()
+                super(TextTestResult, self).addSubTest(test, subtest, err)
+            """
+        )
+        assert source == expected
+
+    @sub_test_test
+    def test_write_status_upstream_source(self):
+        # RichTextTestResult completely replaces _write_status(), so check the
+        # overriden function for changes that may need copying in.
+        source = dedent(
+            inspect.getsource(
+                unittest.TextTestResult._write_status,  # type: ignore[attr-defined]
+            )
+        )
+        expected = dedent(
+            """\
+            def _write_status(self, test, status):
+                is_subtest = isinstance(test, _SubTest)
+                if is_subtest or self._newline:
+                    if not self._newline:
+                        self.stream.writeln()
+                    if is_subtest:
+                        self.stream.write("  ")
+                    self.stream.write(self.getDescription(test))
+                    self.stream.write(" ... ")
+                self.stream.writeln(status)
+                self.stream.flush()
+                self._newline = True
+            """
+        )
+        assert source == expected
+
+    def test_subtest(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_subtest")
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[1] == "."
+
+    def test_subtest_verbose(self):
+        result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_subtest")
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert (
+                lines[1]
+                == "test_subtest (tests.test_test.ExampleTests.test_subtest) ... ok"
+            )
+        else:
+            assert lines[1] == "test_subtest (tests.test_test.ExampleTests) ... ok"
+
+    def test_subtest_quiet(self):
+        result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_subtest")
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[0] == "━" * 80
+
+    def test_subtest_quiet_fail(self):
+        result = self.run_test(
+            "-v", "0", f"{__name__}.ExampleTests.test_failure_subtest"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[:2] == [
+                "─" * 80,
+                "FAIL: test_failure_subtest (tests.test_test.ExampleTests.test_failure_subtest) ",
+            ]
+        else:
+            assert lines[:2] == [
+                "─" * 80,
+                "FAIL: test_failure_subtest (tests.test_test.ExampleTests) (i=1)",
+            ]
+
+    def test_failure_subtest(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_failure_subtest")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "F"
+
+    def test_failure_subtest_verbose(self):
+        result = self.run_test(
+            "-v", "2", f"{__name__}.ExampleTests.test_failure_subtest"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_failure_subtest (tests.test_test.ExampleTests.test_failure_subtest) ... ",
+                "  test_failure_subtest (tests.test_test.ExampleTests.test_failure_subtest) (i=1) ... FAIL",
+                "",
+            ]
+        else:
+            assert lines[1:4] == [
+                "test_failure_subtest (tests.test_test.ExampleTests) ... ",
+                "  test_failure_subtest (tests.test_test.ExampleTests) (i=1) ... FAIL",
+                "",
+            ]
+
+    def test_subtest_skip(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_skip_subtest")
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        assert lines[1] == "s"
+
+    def test_subtest_skip_verbose(self):
+        result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_skip_subtest")
+        assert result.returncode == 0
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_skip_subtest (tests.test_test.ExampleTests.test_skip_subtest) ... ",
+                "  test_skip_subtest (tests.test_test.ExampleTests.test_skip_subtest)  (b=2) ... skipped 'skip'",
+                "",
+            ]
+        else:
+            assert lines[1:4] == [
+                "test_skip_subtest (tests.test_test.ExampleTests) ... ",
+                "  test_skip_subtest (tests.test_test.ExampleTests)  (b=2) ... skipped 'skip'",
+                "",
+            ]
+
+    def test_subtest_mixed(self):
+        result = self.run_test(f"{__name__}.ExampleTests.test_mixed_subtest")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "sFE"
+
+    def test_subtest_mixed_verbose(self):
+        result = self.run_test("-v", "2", f"{__name__}.ExampleTests.test_mixed_subtest")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:6] == [
+                "test_mixed_subtest (tests.test_test.ExampleTests.test_mixed_subtest) ... ",
+                "  test_mixed_subtest (tests.test_test.ExampleTests.test_mixed_subtest)  (b=2) ... skipped 'skip'",
+                "  test_mixed_subtest (tests.test_test.ExampleTests.test_mixed_subtest)  (c=3) ... FAIL",
+                "  test_mixed_subtest (tests.test_test.ExampleTests.test_mixed_subtest)  (d=4) ... ERROR",
+                "",
+            ]
+        else:
+            assert lines[1:6] == [
+                "test_mixed_subtest (tests.test_test.ExampleTests) ... ",
+                "  test_mixed_subtest (tests.test_test.ExampleTests)  (b=2) ... skipped 'skip'",
+                "  test_mixed_subtest (tests.test_test.ExampleTests)  (c=3) ... FAIL",
+                "  test_mixed_subtest (tests.test_test.ExampleTests)  (d=4) ... ERROR",
+                "",
+            ]
+
+    def test_tearDown_fail(self):
+        result = self.run_test(
+            f"{__name__}.TearDownFailTests.test_tearDownError_success"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "F"
+
+        result = self.run_test(f"{__name__}.TearDownFailTests.test_tearDownError_fail")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "FF"
+
+        result = self.run_test(f"{__name__}.TearDownFailTests.test_tearDownError_error")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "EF"
+
+        result = self.run_test(f"{__name__}.TearDownErrorTests.test_tearDownError_skip")
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        assert lines[1] == "sE"
+
+    def test_tearDown_fail_verbose(self):
+        result = self.run_test(
+            "-v", "2", f"{__name__}.TearDownFailTests.test_tearDownError_success"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert (
+                lines[1]
+                == "test_tearDownError_success (tests.test_test.TearDownFailTests.test_tearDownError_success) ... FAIL"
+            )
+        else:
+            assert (
+                lines[1]
+                == "test_tearDownError_success (tests.test_test.TearDownFailTests) ... FAIL"
+            )
+
+        result = self.run_test(
+            "-v", "2", f"{__name__}.TearDownFailTests.test_tearDownError_fail"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_tearDownError_fail (tests.test_test.TearDownFailTests.test_tearDownError_fail) ... FAIL",
+                "test_tearDownError_fail ",
+                "(tests.test_test.TearDownFailTests.test_tearDownError_fail) ... FAIL",
+            ]
+        else:
+            assert lines[1:3] == [
+                "test_tearDownError_fail (tests.test_test.TearDownFailTests) ... FAIL",
+                "test_tearDownError_fail (tests.test_test.TearDownFailTests) ... FAIL",
+            ]
+
+        result = self.run_test(
+            "-v", "2", f"{__name__}.TearDownFailTests.test_tearDownError_error"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_tearDownError_error (tests.test_test.TearDownFailTests.test_tearDownError_error) ... ERROR",
+                "test_tearDownError_error ",
+                "(tests.test_test.TearDownFailTests.test_tearDownError_error) ... FAIL",
+            ]
+        else:
+            assert lines[1:3] == [
+                "test_tearDownError_error (tests.test_test.TearDownFailTests) ... ERROR",
+                "test_tearDownError_error (tests.test_test.TearDownFailTests) ... FAIL",
+            ]
+
+        result = self.run_test(
+            "-v", "2", f"{__name__}.TearDownErrorTests.test_tearDownError_skip"
+        )
+        assert result.returncode == 1
+        lines = result.stderr.splitlines()
+        if sys.version_info >= (3, 11):
+            assert lines[1:4] == [
+                "test_tearDownError_skip (tests.test_test.TearDownErrorTests.test_tearDownError_skip) ... skipped 'skip'",
+                "test_tearDownError_skip ",
+                "(tests.test_test.TearDownErrorTests.test_tearDownError_skip) ... ERROR",
+            ]
+        else:
+            assert lines[1:3] == [
+                "test_tearDownError_skip (tests.test_test.TearDownErrorTests) ... skipped 'skip'",
+                "test_tearDownError_skip (tests.test_test.TearDownErrorTests) ... ERROR",
+            ]
