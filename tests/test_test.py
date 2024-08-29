@@ -138,7 +138,10 @@ class TestRunnerTests(SimpleTestCase):
         assert DiscoverRunner.test_runner is unittest.TextTestRunner
 
     def run_test(
-        self, *args: str, input: str | None = None
+        self,
+        *args: str,
+        input: str | None = None,
+        width: int = 80,
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [
@@ -157,7 +160,7 @@ class TestRunnerTests(SimpleTestCase):
                 "COVERAGE_PROCESS_START": str(PYPROJECT_PATH),
                 # Ensure rich uses colouring and consistent width
                 "TERM": "",
-                "COLUMNS": "80",
+                "COLUMNS": str(width),
             },
         )
 
@@ -323,6 +326,14 @@ class TestRunnerTests(SimpleTestCase):
                 "FAIL: test_failure (tests.test_test.ExampleTests)",
             ]
         assert "─ locals ─" in result.stderr
+
+    def test_failure_stack_frames(self):
+        result = self.run_test(
+            "-v", "2", f"{__name__}.ExampleTests.test_failure", width=1000
+        )
+        assert result.returncode == 1
+        assert "unittest/case.py" not in result.stderr
+        assert "in _baseAssertEqual" not in result.stderr
 
     def test_skip_quiet(self):
         result = self.run_test("-v", "0", f"{__name__}.ExampleTests.test_skip")

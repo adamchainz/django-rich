@@ -167,9 +167,14 @@ class RichTextTestResult(unittest.TextTestResult):
     def _exc_info_to_string(self, err: _SysExcInfoType, test: TestCase) -> str:
         """Converts a sys.exc_info()-style tuple of values into a string."""
         exctype, value, tb = err
-        # Skip test runner traceback levels
-        while tb and self._is_relevant_tb_level(tb):  # type: ignore [attr-defined]
-            tb = tb.tb_next
+
+        if hasattr(self, "_clean_tracebacks"):
+            # Post-bpo-24959 - merged to Python 3.11, backported to 3.9 and 3.10
+            tb = self._clean_tracebacks(exctype, value, tb, test)
+        else:
+            # Skip test runner traceback levels
+            while tb and self._is_relevant_tb_level(tb):  # type: ignore [attr-defined]
+                tb = tb.tb_next
 
         msgLines = []
         if exctype is not None:  # pragma: no branch  # can't work when this isn't true
