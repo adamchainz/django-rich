@@ -9,6 +9,8 @@ Changelog
 * Use unittest’s traceback cleaning.
   Unnecessary frames will now be hidden, as with vanilla unittest, and ``--pdb`` will skip past them.
 
+  `PR #225 <https://github.com/adamchainz/django-rich/pull/225>`__.
+
 1.10.0 (2024-08-12)
 -------------------
 
