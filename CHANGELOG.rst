@@ -2,6 +2,9 @@
 Changelog
 =========
 
+1.11.0 (2024-08-30)
+-------------------
+
 * Extend test runner to style subtests, teardown errors, and teardown failures.
 
   THanks to David Smith in `PR #224 <https://github.com/adamchainz/django-rich/pull/224>`__.
