@@ -521,8 +521,12 @@ class TestRunnerTests(SimpleTestCase):
             expected.insert(0, "Found 1 test(s).")
         assert lines[: len(expected)] == expected
 
-        assert lines[len(expected) + 1 : len(expected) + 4] == [
-            "-> self.assertEqual(1, 2)",
+        if sys.version_info >= (3, 9):
+            assert lines[len(expected) + 1] == "-> self.assertEqual(1, 2)"
+        else:
+            assert lines[len(expected) + 1] == "-> raise self.failureException(msg)"
+
+        assert lines[len(expected) + 2 : len(expected) + 4] == [
             "(Pdb) 4",
             "(Pdb) ",
         ]
