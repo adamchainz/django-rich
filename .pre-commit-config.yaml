@@ -72,3 +72,4 @@ repos:
     - django-stubs==5.0.4
     - rich
     - types-python-dateutil
+    - coverage
