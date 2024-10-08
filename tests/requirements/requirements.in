@@ -4,3 +4,4 @@ pytest
 pytest-django
 pytest-randomly
 rich
+factory-boy
