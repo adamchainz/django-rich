@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from itertools import islice
+from typing import Any
 
 import rich
 from django.db.models.query import QuerySet
@@ -8,7 +9,7 @@ from rich.table import Table
 
 
 def tabulate(
-    queryset: QuerySet | dict[str, str] | str | int,  # type: ignore [type-arg]
+    queryset: dict[Any, Any] | QuerySet[Any] | Any,
     limit: int | None = 10,
 ) -> None:
     if isinstance(queryset, dict):
