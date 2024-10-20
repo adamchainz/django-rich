@@ -2,6 +2,10 @@
 Changelog
 =========
 
+* Add ``django_rich.tabulate()`` for pretty-printing ``QuerySet``\s.
+
+  Thanks to David Smith in `PR #229 <https://github.com/adamchainz/django-rich/pull/229>`__.
+
 * Drop Python 3.8 support.
 
 * Support Python 3.13.
