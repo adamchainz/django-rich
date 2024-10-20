@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import pytest
 from django.db.models import Sum
 from django.db.models.functions import Length
+from django.db.models.query import BaseIterable
 from django.test import TestCase
 from django.test.utils import captured_stdout
 
 from django_rich import tabulate
-
-from .testapp.models import Person
+from tests.testapp.models import Person
 
 
 class TabulateTests(TestCase):
@@ -83,12 +84,45 @@ class TabulateTests(TestCase):
             "    all records.    ",
         ]
 
-    def test_queryset_empty(self):
+    def test_values_list(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("name"))
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "     People      ",
+            "┏━━━━━━━━━━━━━━━┓",
+            "┃ name          ┃",
+            "┡━━━━━━━━━━━━━━━┩",
+            "│ Ash           │",
+            "│ Misty         │",
+            "│ Professor Oak │",
+            "└───────────────┘",
+        ]
+
+    def test_values_list_elided(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("name"), limit=1)
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "       People       ",
+            "┏━━━━━━━━━━━━━━━━━━┓",
+            "┃ name             ┃",
+            "┡━━━━━━━━━━━━━━━━━━┩",
+            "│ Ash              │",
+            "│ …                │",
+            "└──────────────────┘",
+            "   1 of 3 records   ",
+            "     shown. Use     ",
+            "`limit=None` to show",
+            "    all records.    ",
+        ]
+
+    def test_models_empty(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.none())
         assert stdout.getvalue() == "Empty QuerySet.\n"
 
-    def test_queryset(self):
+    def test_models(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.all())
         lines = stdout.getvalue().splitlines()
@@ -103,7 +137,7 @@ class TabulateTests(TestCase):
             "└────┴───────────────┴─────┘",
         ]
 
-    def test_elided(self):
+    def test_models_eleided(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.all(), limit=1)
         lines = stdout.getvalue().splitlines()
@@ -121,13 +155,7 @@ class TabulateTests(TestCase):
             "    all records.    ",
         ]
 
-    def test_single_value(self):
-        with captured_stdout() as stdout:
-            tabulate(Person.objects.count())
-        lines = stdout.getvalue().splitlines()
-        assert lines == ["3"]
-
-    def test_only(self):
+    def test_models_only(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.all().only("age"))
         lines = stdout.getvalue().splitlines()
@@ -142,7 +170,7 @@ class TabulateTests(TestCase):
             "└─────┘",
         ]
 
-    def test_defer(self):
+    def test_models_defer(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.all().defer("age"))
         lines = stdout.getvalue().splitlines()
@@ -156,3 +184,24 @@ class TabulateTests(TestCase):
             "│ 3  │ Professor Oak │",
             "└────┴───────────────┘",
         ]
+
+    def test_unsupported_iterable_class(self):
+        qs = Person.objects.all()
+
+        class WhateverIterable(BaseIterable):  # type: ignore [type-arg]
+            pass
+
+        qs._iterable_class = WhateverIterable
+
+        with pytest.raises(ValueError) as excinfo:
+            tabulate(qs)
+
+        assert excinfo.value.args == (
+            f"Unsupported iterable type: <class '{__name__}.{WhateverIterable.__qualname__}'>.",
+        )
+
+    def test_single_value(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.count())
+        lines = stdout.getvalue().splitlines()
+        assert lines == ["3"]

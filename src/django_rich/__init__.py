@@ -4,8 +4,10 @@ from itertools import islice
 from typing import Any
 
 import rich
+from django.db.models.query import ModelIterable
 from django.db.models.query import QuerySet
 from django.db.models.query import ValuesIterable
+from django.db.models.query import ValuesListIterable
 from rich.table import Table
 
 
@@ -24,8 +26,19 @@ def tabulate(
             table = Table(*queryset[0].keys(), title=title)
             for row in islice(queryset, limit):
                 table.add_row(*map(str, row.values()))
-        # todo: RawModelIterable, ValuesListIterable, NamedValuesListIterable, FlatValuesListIterable?
-        else:
+
+        elif issubclass(queryset._iterable_class, ValuesListIterable):
+            # QuerySet.values_list(), yielding tuples
+            table = Table(
+                *queryset._fields,  # type: ignore [attr-defined]
+                title=title,
+            )
+            for row in islice(queryset, limit):
+                table.add_row(*map(str, row))
+
+        # todo: RawModelIterable, NamedValuesListIterable, FlatValuesListIterable?
+        elif issubclass(queryset._iterable_class, ModelIterable):
+            # standard QuerySet, yielding model instances
             try:
                 first = queryset.values()[0]
             except IndexError:
@@ -54,6 +67,8 @@ def tabulate(
                         if field in fields
                     )
                 table.add_row(*data)
+        else:
+            raise ValueError(f"Unsupported iterable type: {queryset._iterable_class}.")
         if not table.rows:
             rich.print("[i]Empty QuerySet.[/i]")
         else:
