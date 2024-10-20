@@ -34,10 +34,10 @@ class FakeTtyStringIO(StringIO):
         return True
 
 
-def call_command(*args: str, **kwargs: Any) -> None:
+def call_command(command: BaseCommand | str, *args: str, **kwargs: Any) -> None:
     # Ensure rich uses colouring and consistent width
     with mock.patch.dict(os.environ, TERM="", COLUMNS="80"):
-        base_call_command(*args, **kwargs)
+        base_call_command(command, *args, **kwargs)
 
 
 class RichCommandTests(SimpleTestCase):
@@ -89,11 +89,11 @@ class RichCommandTests(SimpleTestCase):
         assert stdout.getvalue() == "\x1b[1;31mAlert!\x1b[0m\n"
 
     def test_output_make_rich_console(self):
-        stdout = FakeTtyStringIO()
-        make_console = partial(Console, markup=False, highlight=False)
-        patcher = mock.patch.object(ExampleCommand, "make_rich_console", make_console)
+        class TestCommand(ExampleCommand):
+            make_rich_console = partial(Console, markup=False, highlight=False)
 
-        with patcher:
-            call_command("example", stdout=stdout)
+        stdout = FakeTtyStringIO()
+
+        call_command(TestCommand(), stdout=stdout)
 
         assert stdout.getvalue() == "[bold red]Alert![/bold red]\n"
