@@ -327,10 +327,6 @@ class TestRunnerTests(SimpleTestCase):
             ]
         assert "─ locals ─" in result.stderr
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 9),
-        reason="Traceback cleaning only on Python 3.10+",
-    )
     def test_failure_stack_frames(self):
         result = self.run_test(
             "-v", "2", f"{__name__}.ExampleTests.test_failure", width=1000
@@ -521,10 +517,7 @@ class TestRunnerTests(SimpleTestCase):
             expected.insert(0, "Found 1 test(s).")
         assert lines[: len(expected)] == expected
 
-        if sys.version_info >= (3, 9):
-            assert lines[len(expected) + 1] == "-> self.assertEqual(1, 2)"
-        else:
-            assert lines[len(expected) + 1] == "-> raise self.failureException(msg)"
+        assert lines[len(expected) + 1] == "-> self.assertEqual(1, 2)"
 
         assert lines[len(expected) + 2 : len(expected) + 4] == [
             "(Pdb) 4",
