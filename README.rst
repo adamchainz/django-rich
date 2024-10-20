@@ -69,6 +69,40 @@ __ https://docs.djangoproject.com/en/stable/ref/django-admin/#shell
 This feature only affects the Python and bypthon interpreters, not IPython.
 For IPython support, see `the Rich documentation <https://rich.readthedocs.io/en/stable/introduction.html#ipython-extension>`__.
 
+``django_rich.tabulate(queryset: Any, limit: int | None = 10)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pretty-print the given ``QuerySet`` in a lovely Rich table.
+For example:
+
+.. code-block:: ipython
+
+    In [1]: from django_rich import tabulate
+       ...: from example.models import Person
+
+    In [2]: tabulate(Person.objects.all())
+               People
+    ┏━━━━┳━━━━━━━━━━━━━━━┳━━━━━┓
+    ┃ id ┃ name          ┃ age ┃
+    ┡━━━━╇━━━━━━━━━━━━━━━╇━━━━━┩
+    │ 1  │ Ash           │ 10  │
+    │ 2  │ Misty         │ 10  │
+    │ 3  │ Professor Oak │ 50  │
+    └────┴───────────────┴─────┘
+
+``queryset`` supports:
+
+* regular ``QuerySet``\s of model instances
+* use of ``.values()`` or ``.values_list()`` for limited data types
+* use of ``.only()`` or ``.defer()`` to limit fields
+* use of ``.annotate()`` to add extra fields
+* dictionaries, as returned by ``aggregate()``
+
+Other values are passed through to ``rich.print()`` to support ``QuerySet`` methods like ``.count()``.
+
+``limit`` is the maximum number of rows to display.
+Pass ``None`` to display all rows.
+
 ``django_rich.management.RichCommand``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

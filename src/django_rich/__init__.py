@@ -12,7 +12,7 @@ from rich.table import Table
 
 
 def tabulate(
-    queryset: dict[Any, Any] | QuerySet[Any] | Any,
+    queryset: Any,
     limit: int | None = 10,
 ) -> None:
     if isinstance(queryset, dict):
