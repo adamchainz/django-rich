@@ -3,12 +3,10 @@ from __future__ import annotations
 import io
 import sys
 import unittest
+from collections.abc import Iterable
 from types import TracebackType
 from typing import Any
-from typing import Iterable
 from typing import TextIO
-from typing import Tuple
-from typing import Type
 from typing import Union
 from typing import cast
 from unittest.case import TestCase
@@ -30,8 +28,8 @@ from rich.table import Table
 from rich.traceback import Traceback
 
 _SysExcInfoType = Union[
-    Tuple[Type[BaseException], BaseException, TracebackType],
-    Tuple[None, None, None],
+    tuple[type[BaseException], BaseException, TracebackType],
+    tuple[None, None, None],
 ]
 
 DJANGO_GREEN = Style(color=Color.from_rgb(32, 170, 118))
@@ -167,7 +165,8 @@ class RichTextTestResult(unittest.TextTestResult):
         if hasattr(self, "_clean_tracebacks"):
             # Post-bpo-24959 - merged to Python 3.11, backported to 3.9 and 3.10
             tb = self._clean_tracebacks(exctype, value, tb, test)
-        else:
+        else:  # pragma: no cover
+            # needed on old 3.9 and 3.10 patch versions, but not testing those
             # Skip test runner traceback levels
             while tb and self._is_relevant_tb_level(tb):  # type: ignore [attr-defined]
                 tb = tb.tb_next
