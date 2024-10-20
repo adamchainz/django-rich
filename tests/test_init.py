@@ -18,7 +18,7 @@ class TabulateTests(TestCase):
             tabulate(Person.objects.all())
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "         Person(s)         ",
+            "          People           ",
             "┏━━━━┳━━━━━━━━━━━━━━┳━━━━━┓",
             "┃ id ┃ name         ┃ age ┃",
             "┡━━━━╇━━━━━━━━━━━━━━╇━━━━━┩",
@@ -34,7 +34,7 @@ class TabulateTests(TestCase):
             tabulate(Person.objects.all(), limit=1)
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "       Person(s)        ",
+            "         People         ",
             "┏━━━━┳━━━━━━━━━━━┳━━━━━┓",
             "┃ id ┃ name      ┃ age ┃",
             "┡━━━━╇━━━━━━━━━━━╇━━━━━┩",
@@ -74,7 +74,7 @@ class TabulateTests(TestCase):
             tabulate(Person.objects.values("name").annotate(len=Length("age")))
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "      Person(s)       ",
+            "        People        ",
             "┏━━━━━━━━━━━━━━┳━━━━━┓",
             "┃ name         ┃ len ┃",
             "┡━━━━━━━━━━━━━━╇━━━━━┩",
@@ -94,8 +94,7 @@ class TabulateTests(TestCase):
             tabulate(Person.objects.all().only("age"))
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "Person(",
-            "  s)   ",
+            "People ",
             "┏━━━━━┓",
             "┃ age ┃",
             "┡━━━━━┩",
@@ -109,7 +108,7 @@ class TabulateTests(TestCase):
             tabulate(Person.objects.all().defer("age"))
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "    Person(s)     ",
+            "      People      ",
             "┏━━━━┳━━━━━━━━━━━┓",
             "┃ id ┃ name      ┃",
             "┡━━━━╇━━━━━━━━━━━┩",

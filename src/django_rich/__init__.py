@@ -17,11 +17,12 @@ def tabulate(
         table.add_row(*map(str, queryset.values()))
         rich.print(table)
     elif isinstance(queryset, QuerySet):
+        title = queryset.model._meta.verbose_name_plural.title()
         if len(queryset) == 0:
             rich.print("")
             return
         if isinstance(queryset[0], dict):
-            table = Table(*queryset[0].keys(), title=f"{queryset.model.__name__}(s)")
+            table = Table(*queryset[0].keys(), title=title)
             for row in islice(queryset, limit):
                 table.add_row(*map(str, row.values()))
         else:
@@ -32,7 +33,7 @@ def tabulate(
                 ]
             else:
                 headers = [key for key in queryset.values()[0].keys() if key in fields]
-            table = Table(*headers, title=f"{queryset.model.__name__}(s)")
+            table = Table(*headers, title=title)
             for row in islice(queryset.values_list(named=True), limit):
                 if is_deferred:
                     data = (
