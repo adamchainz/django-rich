@@ -5,6 +5,7 @@ from typing import Any
 
 import rich
 from django.db.models.query import QuerySet
+from django.db.models.query import ValuesIterable
 from rich.table import Table
 
 
@@ -14,25 +15,30 @@ def tabulate(
 ) -> None:
     if isinstance(queryset, dict):
         table = Table(*queryset.keys())
-        table.add_row(*map(str, queryset.values()))
+        table.add_row(*[str(v) for v in queryset.values()])
         rich.print(table)
     elif isinstance(queryset, QuerySet):
         title = queryset.model._meta.verbose_name_plural.title()
-        if len(queryset) == 0:
-            rich.print("")
-            return
-        if isinstance(queryset[0], dict):
+        if issubclass(queryset._iterable_class, ValuesIterable):
+            # QuerySet.values(), yielding dicts
             table = Table(*queryset[0].keys(), title=title)
             for row in islice(queryset, limit):
                 table.add_row(*map(str, row.values()))
+        # todo: RawModelIterable, ValuesListIterable, NamedValuesListIterable, FlatValuesListIterable?
         else:
-            fields, is_deferred = queryset.query.deferred_loading
-            if is_deferred:
-                headers = [
-                    key for key in queryset.values()[0].keys() if key not in fields
-                ]
+            try:
+                first = queryset.values()[0]
+            except IndexError:
+                # Empty QuerySet
+                fields: frozenset[str] | set[str] = frozenset()
+                is_deferred = False
+                headers = []
             else:
-                headers = [key for key in queryset.values()[0].keys() if key in fields]
+                fields, is_deferred = queryset.query.deferred_loading
+                if is_deferred:
+                    headers = [key for key in first.keys() if key not in fields]
+                else:
+                    headers = [key for key in first.keys() if key in fields]
             table = Table(*headers, title=title)
             for row in islice(queryset.values_list(named=True), limit):
                 if is_deferred:
@@ -48,10 +54,14 @@ def tabulate(
                         if field in fields
                     )
                 table.add_row(*data)
-        dataset_len = len(queryset)
-        if limit and limit < dataset_len:
-            table.caption = f"{limit} of {dataset_len} records shown. Use `limit=None` to show all records."
-            table.add_row(*["…"] * len(headers))
-        rich.print(table)
+        if not table.rows:
+            rich.print("[i]Empty QuerySet.[/i]")
+        else:
+            dataset_len = len(queryset)
+            if limit and limit < dataset_len:
+                table.add_row(*["…"] * len(table.columns))
+                table.caption = f"{limit} of {dataset_len} records shown. Use `limit=None` to show all records."
+                table.min_width = 20
+            rich.print(table)
     else:
         rich.print(queryset)

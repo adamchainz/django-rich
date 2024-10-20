@@ -11,51 +11,19 @@ from .testapp.models import Person
 
 
 class TabulateTests(TestCase):
-    def test_queryset(self):
-        Person.objects.create(name="Test Name", age=8)
-        Person.objects.create(name="Another Name", age=88)
-        with captured_stdout() as stdout:
-            tabulate(Person.objects.all())
-        lines = stdout.getvalue().splitlines()
-        assert lines == [
-            "          People           ",
-            "┏━━━━┳━━━━━━━━━━━━━━┳━━━━━┓",
-            "┃ id ┃ name         ┃ age ┃",
-            "┡━━━━╇━━━━━━━━━━━━━━╇━━━━━┩",
-            "│ 1  │ Test Name    │ 8   │",
-            "│ 2  │ Another Name │ 88  │",
-            "└────┴──────────────┴─────┘",
-        ]
+    @classmethod
+    def setUpTestData(cls):
+        Person.objects.create(id=1, name="Ash", age=10)
+        Person.objects.create(id=2, name="Misty", age=10)
+        Person.objects.create(id=3, name="Professor Oak", age=50)
 
-    def test_elided(self):
-        Person.objects.create(name="Test Name", age=8)
-        Person.objects.create(name="Another Name", age=88)
+    def test_dict_empty(self):
         with captured_stdout() as stdout:
-            tabulate(Person.objects.all(), limit=1)
+            tabulate({})
         lines = stdout.getvalue().splitlines()
-        assert lines == [
-            "         People         ",
-            "┏━━━━┳━━━━━━━━━━━┳━━━━━┓",
-            "┃ id ┃ name      ┃ age ┃",
-            "┡━━━━╇━━━━━━━━━━━╇━━━━━┩",
-            "│ 1  │ Test Name │ 8   │",
-            "│ …  │ …         │ …   │",
-            "└────┴───────────┴─────┘",
-            " 1 of 2 records shown.  ",
-            "Use `limit=None` to show",
-            "      all records.      ",
-        ]
+        assert lines == [""]
 
-    def test_single_value(self):
-        Person.objects.create(name="Test Name", age=8)
-        with captured_stdout() as stdout:
-            tabulate(Person.objects.count())
-        lines = stdout.getvalue().splitlines()
-        assert lines == ["1"]
-
-    def test_dict(self):
-        Person.objects.create(name="Test Name", age=8)
-        Person.objects.create(name="Another Name", age=88)
+    def test_dict_from_aggregate(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.aggregate(Sum("age")))
         lines = stdout.getvalue().splitlines()
@@ -63,33 +31,103 @@ class TabulateTests(TestCase):
             "┏━━━━━━━━━━┓",
             "┃ age__sum ┃",
             "┡━━━━━━━━━━┩",
-            "│ 96       │",
+            "│ 70       │",
             "└──────────┘",
         ]
 
-    def test_annotation(self):
-        Person.objects.create(name="Test Name", age=8)
-        Person.objects.create(name="Another Name", age=88)
+    def test_values(self):
         with captured_stdout() as stdout:
-            tabulate(Person.objects.values("name").annotate(len=Length("age")))
+            tabulate(Person.objects.values("name"))
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "        People        ",
-            "┏━━━━━━━━━━━━━━┳━━━━━┓",
-            "┃ name         ┃ len ┃",
-            "┡━━━━━━━━━━━━━━╇━━━━━┩",
-            "│ Test Name    │ 1   │",
-            "│ Another Name │ 2   │",
-            "└──────────────┴─────┘",
+            "     People      ",
+            "┏━━━━━━━━━━━━━━━┓",
+            "┃ name          ┃",
+            "┡━━━━━━━━━━━━━━━┩",
+            "│ Ash           │",
+            "│ Misty         │",
+            "│ Professor Oak │",
+            "└───────────────┘",
         ]
 
-    def test_empty_queryset(self):
+    def test_values_with_annotation(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values("name").annotate(len=Length("name")))
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "        People         ",
+            "┏━━━━━━━━━━━━━━━┳━━━━━┓",
+            "┃ name          ┃ len ┃",
+            "┡━━━━━━━━━━━━━━━╇━━━━━┩",
+            "│ Ash           │ 3   │",
+            "│ Misty         │ 5   │",
+            "│ Professor Oak │ 13  │",
+            "└───────────────┴─────┘",
+        ]
+
+    def test_values_elided(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values("name"), limit=1)
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "       People       ",
+            "┏━━━━━━━━━━━━━━━━━━┓",
+            "┃ name             ┃",
+            "┡━━━━━━━━━━━━━━━━━━┩",
+            "│ Ash              │",
+            "│ …                │",
+            "└──────────────────┘",
+            "   1 of 3 records   ",
+            "     shown. Use     ",
+            "`limit=None` to show",
+            "    all records.    ",
+        ]
+
+    def test_queryset_empty(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.none())
+        assert stdout.getvalue() == "Empty QuerySet.\n"
+
+    def test_queryset(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.all())
-        assert stdout.getvalue() == "\n"
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "           People           ",
+            "┏━━━━┳━━━━━━━━━━━━━━━┳━━━━━┓",
+            "┃ id ┃ name          ┃ age ┃",
+            "┡━━━━╇━━━━━━━━━━━━━━━╇━━━━━┩",
+            "│ 1  │ Ash           │ 10  │",
+            "│ 2  │ Misty         │ 10  │",
+            "│ 3  │ Professor Oak │ 50  │",
+            "└────┴───────────────┴─────┘",
+        ]
+
+    def test_elided(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.all(), limit=1)
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "       People       ",
+            "┏━━━━━┳━━━━━━┳━━━━━┓",
+            "┃ id  ┃ name ┃ age ┃",
+            "┡━━━━━╇━━━━━━╇━━━━━┩",
+            "│ 1   │ Ash  │ 10  │",
+            "│ …   │ …    │ …   │",
+            "└─────┴──────┴─────┘",
+            "   1 of 3 records   ",
+            "     shown. Use     ",
+            "`limit=None` to show",
+            "    all records.    ",
+        ]
+
+    def test_single_value(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.count())
+        lines = stdout.getvalue().splitlines()
+        assert lines == ["3"]
 
     def test_only(self):
-        Person.objects.create(name="Test Name", age=8)
         with captured_stdout() as stdout:
             tabulate(Person.objects.all().only("age"))
         lines = stdout.getvalue().splitlines()
@@ -98,20 +136,23 @@ class TabulateTests(TestCase):
             "┏━━━━━┓",
             "┃ age ┃",
             "┡━━━━━┩",
-            "│ 8   │",
+            "│ 10  │",
+            "│ 10  │",
+            "│ 50  │",
             "└─────┘",
         ]
 
     def test_defer(self):
-        Person.objects.create(name="Test Name", age=8)
         with captured_stdout() as stdout:
             tabulate(Person.objects.all().defer("age"))
         lines = stdout.getvalue().splitlines()
         assert lines == [
-            "      People      ",
-            "┏━━━━┳━━━━━━━━━━━┓",
-            "┃ id ┃ name      ┃",
-            "┡━━━━╇━━━━━━━━━━━┩",
-            "│ 1  │ Test Name │",
-            "└────┴───────────┘",
+            "        People        ",
+            "┏━━━━┳━━━━━━━━━━━━━━━┓",
+            "┃ id ┃ name          ┃",
+            "┡━━━━╇━━━━━━━━━━━━━━━┩",
+            "│ 1  │ Ash           │",
+            "│ 2  │ Misty         │",
+            "│ 3  │ Professor Oak │",
+            "└────┴───────────────┘",
         ]
