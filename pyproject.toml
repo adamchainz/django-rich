@@ -89,10 +89,14 @@ mypy_path = "src/"
 namespace_packages = false
 strict = true
 warn_unreachable = true
+plugins = [ "mypy_django_plugin.main" ]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 allow_untyped_defs = true
+
+[tool.django-stubs]
+django_settings_module = "tests.settings"
 
 [tool.rstcheck]
 report_level = "ERROR"
