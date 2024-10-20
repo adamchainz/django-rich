@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from itertools import chain
 from itertools import islice
 from typing import Any
+from typing import TypeVar
 
 import rich
 from django.db.models.query import ModelIterable
+from django.db.models.query import NamedValuesListIterable
 from django.db.models.query import QuerySet
 from django.db.models.query import ValuesIterable
 from django.db.models.query import ValuesListIterable
@@ -19,12 +23,19 @@ def tabulate(
         table = Table(*queryset.keys())
         table.add_row(*[str(v) for v in queryset.values()])
         rich.print(table)
+
     elif isinstance(queryset, QuerySet):
         title = queryset.model._meta.verbose_name_plural.title()
+
         if issubclass(queryset._iterable_class, ValuesIterable):
             # QuerySet.values(), yielding dicts
-            table = Table(*queryset[0].keys(), title=title)
-            for row in islice(queryset, limit):
+            first, rows = _peek(islice(queryset, limit))
+            if isinstance(first, Empty):
+                headers = []
+            else:
+                headers = first.keys()
+            table = Table(*headers, title=title)
+            for row in rows:
                 table.add_row(*map(str, row.values()))
 
         elif issubclass(queryset._iterable_class, ValuesListIterable):
@@ -36,7 +47,20 @@ def tabulate(
             for row in islice(queryset, limit):
                 table.add_row(*map(str, row))
 
-        # todo: RawModelIterable, NamedValuesListIterable, FlatValuesListIterable?
+        elif issubclass(queryset._iterable_class, NamedValuesListIterable):
+            # QuerySet.values_list(named=True), yielding namedtuples
+            first, rows = _peek(islice(queryset, limit))
+            if isinstance(first, Empty):
+                headers = []
+            else:
+                headers = first._fields
+                1 / 0
+
+            table = Table(*headers, title=title)
+            for row in rows:
+                table.add_row(*map(str, row))
+
+        # todo: NamedValuesListIterable, FlatValuesListIterable?
         elif issubclass(queryset._iterable_class, ModelIterable):
             # standard QuerySet, yielding model instances
             try:
@@ -80,3 +104,20 @@ def tabulate(
             rich.print(table)
     else:
         rich.print(queryset)
+
+
+T = TypeVar("T")
+
+
+class Empty:
+    pass
+
+
+EMPTY = Empty()
+
+
+def _peek(iterator: Iterator[T]) -> tuple[T | Empty, Iterator[T]]:
+    first = next(iterator, EMPTY)
+    if not isinstance(first, Empty):
+        iterator = chain((first,), iterator)
+    return first, iterator

@@ -36,6 +36,11 @@ class TabulateTests(TestCase):
             "└──────────┘",
         ]
 
+    def test_values_empty(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values("name").none())
+        assert stdout.getvalue() == "Empty QuerySet.\n"
+
     def test_values(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.values("name"))
@@ -84,6 +89,11 @@ class TabulateTests(TestCase):
             "    all records.    ",
         ]
 
+    def test_values_list_empty(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("name").none())
+        assert stdout.getvalue() == "Empty QuerySet.\n"
+
     def test_values_list(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.values_list("name"))
@@ -115,6 +125,26 @@ class TabulateTests(TestCase):
             "     shown. Use     ",
             "`limit=None` to show",
             "    all records.    ",
+        ]
+
+    def test_values_list_named_empty(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("id", "name", named=True).none())
+        assert stdout.getvalue() == "Empty QuerySet.\n"
+
+    def test_values_list_named(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("id", "name", named=True))
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "        People        ",
+            "┏━━━━┳━━━━━━━━━━━━━━━┓",
+            "┃ id ┃ name          ┃",
+            "┡━━━━╇━━━━━━━━━━━━━━━┩",
+            "│ 1  │ Ash           │",
+            "│ 2  │ Misty         │",
+            "│ 3  │ Professor Oak │",
+            "└────┴───────────────┘",
         ]
 
     def test_models_empty(self):
