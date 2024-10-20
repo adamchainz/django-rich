@@ -127,6 +127,26 @@ class TabulateTests(TestCase):
             "    all records.    ",
         ]
 
+    def test_values_list_flat_empty(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("name", flat=True).none())
+        assert stdout.getvalue() == "Empty QuerySet.\n"
+
+    def test_values_list_flati(self):
+        with captured_stdout() as stdout:
+            tabulate(Person.objects.values_list("name", flat=True))
+        lines = stdout.getvalue().splitlines()
+        assert lines == [
+            "     People      ",
+            "┏━━━━━━━━━━━━━━━┓",
+            "┃ name          ┃",
+            "┡━━━━━━━━━━━━━━━┩",
+            "│ Ash           │",
+            "│ Misty         │",
+            "│ Professor Oak │",
+            "└───────────────┘",
+        ]
+
     def test_values_list_named_empty(self):
         with captured_stdout() as stdout:
             tabulate(Person.objects.values_list("id", "name", named=True).none())

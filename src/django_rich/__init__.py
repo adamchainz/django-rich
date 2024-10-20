@@ -7,6 +7,7 @@ from typing import Any
 from typing import TypeVar
 
 import rich
+from django.db.models.query import FlatValuesListIterable
 from django.db.models.query import ModelIterable
 from django.db.models.query import NamedValuesListIterable
 from django.db.models.query import QuerySet
@@ -47,6 +48,15 @@ def tabulate(
             for row in islice(queryset, limit):
                 table.add_row(*map(str, row))
 
+        elif issubclass(queryset._iterable_class, FlatValuesListIterable):
+            # QuerySet.values_list(flat=True), yielding single values
+            table = Table(
+                *queryset._fields,  # type: ignore [attr-defined]
+                title=title,
+            )
+            for value in islice(queryset, limit):
+                table.add_row(str(value))
+
         elif issubclass(queryset._iterable_class, NamedValuesListIterable):
             # QuerySet.values_list(named=True), yielding namedtuples
             first, rows = _peek(islice(queryset, limit))
@@ -60,7 +70,6 @@ def tabulate(
             for row in rows:
                 table.add_row(*map(str, row))
 
-        # todo: NamedValuesListIterable, FlatValuesListIterable?
         elif issubclass(queryset._iterable_class, ModelIterable):
             # standard QuerySet, yielding model instances
             try:
