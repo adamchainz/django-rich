@@ -2,8 +2,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+1.12.0 (2024-10-23)
+-------------------
 
 * Improve the type hint for ``RichCommand.make_rich_console`` to support overriding.
 
