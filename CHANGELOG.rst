@@ -2,6 +2,9 @@
 Changelog
 =========
 
+Unreleased
+----------
+
 * Improve the type hint for ``RichCommand.make_rich_console`` to support overriding.
 
 * Drop Python 3.8 support.
