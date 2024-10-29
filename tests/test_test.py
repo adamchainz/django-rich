@@ -416,10 +416,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test(
             "-v", "0", f"{__name__}.ExampleTests.test_unexpected_success"
         )
-        if django.VERSION >= (4, 1):
-            assert result.returncode == 1
-        else:
-            assert result.returncode == 0
+        assert result.returncode == 1
         lines = result.stderr.splitlines()
         if sys.version_info >= (3, 11):
             assert lines[:1] == ["═" * 80]
@@ -429,10 +426,7 @@ class TestRunnerTests(SimpleTestCase):
     def test_unexpected_success_normal(self):
         result = self.run_test(f"{__name__}.ExampleTests.test_unexpected_success")
 
-        if django.VERSION >= (4, 1):
-            assert result.returncode == 1
-        else:
-            assert result.returncode == 0
+        assert result.returncode == 1
         lines = result.stderr.splitlines()
         if sys.version_info >= (3, 11):
             assert lines[1:3] == [
@@ -449,10 +443,7 @@ class TestRunnerTests(SimpleTestCase):
         result = self.run_test(
             "-v", "2", f"{__name__}.ExampleTests.test_unexpected_success"
         )
-        if django.VERSION >= (4, 1):
-            assert result.returncode == 1
-        else:
-            assert result.returncode == 0
+        assert result.returncode == 1
         lines = result.stderr.splitlines()
         if sys.version_info >= (3, 11):
             assert lines[1:4] == [
@@ -486,13 +477,8 @@ class TestRunnerTests(SimpleTestCase):
             "",
             "─" * 80,
         ]
-        if django.VERSION >= (4, 0):
-            # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
-            sql_line_re = (
-                r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\); alias=default"
-            )
-        else:
-            sql_line_re = r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\)"
+        # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
+        sql_line_re = r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\); alias=default"
         assert re.match(sql_line_re, lines[-7])
         assert lines[-6:-4] == [
             "",
