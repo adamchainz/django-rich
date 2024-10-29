@@ -495,12 +495,11 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         lines = result.stdout.splitlines()
         expected = [
+            "Found 1 test(s).",
             "System check identified no issues (0 silenced).",
             "",
             "Opening PDB: AssertionError('1 != 2')",
         ]
-        if django.VERSION >= (4,):
-            expected.insert(0, "Found 1 test(s).")
         assert lines[: len(expected)] == expected
 
         assert lines[len(expected) + 1] == "-> self.assertEqual(1, 2)"
