@@ -6,7 +6,6 @@ import unittest
 from collections.abc import Iterable
 from types import TracebackType
 from typing import Any
-from typing import TextIO
 from typing import Union
 from typing import cast
 from unittest.case import TestCase
@@ -15,6 +14,7 @@ from unittest.result import STDERR_LINE
 from unittest.result import STDOUT_LINE
 from unittest.result import TestResult
 from unittest.result import failfast
+from unittest.runner import _WritelnDecorator
 
 from django.test import testcases
 from django.test.runner import DebugSQLTextTestResult
@@ -44,14 +44,14 @@ class RichTextTestResult(unittest.TextTestResult):
 
     def __init__(
         self,
-        stream: TextIO,
+        stream: _WritelnDecorator,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(stream, *args, **kwargs)
         self.console = Console(
             # Get underlying stream from _WritelnDecorator, normally sys.stderr:
-            file=self.stream.stream,  # type: ignore [attr-defined]
+            file=self.stream.stream,
         )
         with self.console.capture() as cap:
             self.console.print(Rule(characters="═", style=DJANGO_GREEN))
