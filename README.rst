@@ -119,8 +119,7 @@ __ https://docs.python.org/3/library/functools.html#functools.partial
     class Command(RichCommand):
         make_rich_console = partial(Console, markup=False, highlight=False)
 
-        def handle(self, *args, **options):
-            ...
+        def handle(self, *args, **options): ...
 
 ``django_rich.test.RichRunner``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
