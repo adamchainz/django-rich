@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "django-rich"
-version = "1.13.0"
+version = "1.14.0"
 description = "Extensions for using Rich with Django."
 readme = "README.rst"
 keywords = [
