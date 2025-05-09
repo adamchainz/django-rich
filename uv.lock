@@ -113,8 +113,8 @@ name = "django"
 version = "4.2.21"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version < '3.10'",
     "python_full_version >= '3.10'",
+    "python_full_version < '3.10'",
 ]
 dependencies = [
     { name = "asgiref" },
@@ -179,7 +179,7 @@ wheels = [
 
 [[package]]
 name = "django-rich"
-version = "1.14.0"
+version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "django", version = "4.2.21", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' or extra == 'group-11-django-rich-django42' or (extra == 'group-11-django-rich-django50' and extra == 'group-11-django-rich-django51') or (extra == 'group-11-django-rich-django50' and extra == 'group-11-django-rich-django52') or (extra == 'group-11-django-rich-django51' and extra == 'group-11-django-rich-django52')" },

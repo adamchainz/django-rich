@@ -2,6 +2,9 @@
 Changelog
 =========
 
+2.0.0 (2025-05-09)
+------------------
+
 * Change ``make_rich_console()`` from a ``partial()`` into a method, to avoid this warning on Python 3.13:
 
     ``FutureWarning``: ``functools.partial`` will be a method descriptor in future Python versions; wrap it in ``staticmethod()`` if you want to preserve the old behavior
