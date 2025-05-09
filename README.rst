@@ -101,12 +101,9 @@ Use the features of ``self.console`` as you like:
                     sleep(1)
                     self.console.log(f"Widget {i} frobnicated.")
 
-You can customize the construction of the ``Console`` by overriding the ``make_rich_console`` class attribute.
-This should be a callable that returns a ``Console``, such as a |functools.partial|__.
-For example, to disable the default-on ``markup`` and ``highlighting`` flags:
-
-.. |functools.partial| replace:: ``functools.partial``
-__ https://docs.python.org/3/library/functools.html#functools.partial
+You can customize the construction of the ``Console`` by overriding the ``make_rich_console()`` method.
+This takes some keyword arguments and passes them to the ``Console`` constructor.
+For example, to disable the on-by-default ``markup`` and ``highlighting`` flags, add them in a call to ``super()``:
 
 .. code-block:: python
 
@@ -117,7 +114,8 @@ __ https://docs.python.org/3/library/functools.html#functools.partial
 
 
     class Command(RichCommand):
-        make_rich_console = partial(Console, markup=False, highlight=False)
+        def make_rich_console(self, **kwargs):
+            return super().make_rich_console(**kwargs, markup=False, highlight=False)
 
         def handle(self, *args, **options): ...
 
