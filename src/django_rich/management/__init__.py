@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Callable
 from typing import Any
 from typing import TextIO
 
@@ -53,4 +52,5 @@ class RichCommand(BaseCommand):
             force_terminal=force_terminal,
         )
 
-    make_rich_console: Callable[..., Console] = Console
+    def make_rich_console(self, **kwargs: Any) -> Console:
+        return Console(**kwargs)

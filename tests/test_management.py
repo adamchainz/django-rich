@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from functools import partial
 from inspect import Parameter
 from inspect import Signature
 from inspect import signature
@@ -90,7 +89,10 @@ class RichCommandTests(SimpleTestCase):
 
     def test_output_make_rich_console(self):
         class TestCommand(ExampleCommand):
-            make_rich_console = partial(Console, markup=False, highlight=False)
+            def make_rich_console(self, **kwargs: Any) -> Console:
+                return super().make_rich_console(
+                    **kwargs, markup=False, highlight=False
+                )
 
         stdout = FakeTtyStringIO()
 
