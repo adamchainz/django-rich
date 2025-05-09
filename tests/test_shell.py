@@ -4,6 +4,7 @@ import sys
 from code import InteractiveConsole
 from unittest import mock
 
+import django
 import pytest
 from django.core.management import call_command
 from django.test import SimpleTestCase
@@ -24,8 +25,18 @@ class ShellCommandTestCase(SimpleTestCase):
             console.push("from rich.panel import Panel\n")
             console.push('Panel.fit("hi!")\n')
         lines = stdout.getvalue().splitlines()
-        assert lines == [
-            "╭─────╮",
-            "│ hi! │",
-            "╰─────╯",
-        ]
+        if django.VERSION >= (5, 2):
+
+            assert lines == [
+                "0 objects imported automatically.",
+                "",
+                "╭─────╮",
+                "│ hi! │",
+                "╰─────╯",
+            ]
+        else:
+            assert lines == [
+                "╭─────╮",
+                "│ hi! │",
+                "╰─────╯",
+            ]
