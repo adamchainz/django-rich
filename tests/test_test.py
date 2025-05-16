@@ -589,7 +589,7 @@ class TestRunnerTests(SimpleTestCase):
     @durations_test
     def test_durations_upstream_source(self):
         # RichTestRunner completely replaces _printDurations(), so check the
-        # overriden function for changes that may need copying in.
+        # overridden function for changes that may need copying in.
         source = dedent(
             inspect.getsource(
                 unittest.TextTestRunner._printDurations,  # type: ignore[attr-defined]
@@ -750,7 +750,7 @@ class TestRunnerTests(SimpleTestCase):
     @sub_test_test
     def test_subtest_upstream_source(self):
         # RichTextTestResult completely replaces _addSubTest(), so check the
-        # overriden function for changes that may need copying in.
+        # overridden function for changes that may need copying in.
         source = dedent(
             inspect.getsource(
                 unittest.TextTestResult.addSubTest,
@@ -779,7 +779,7 @@ class TestRunnerTests(SimpleTestCase):
     @sub_test_test
     def test_write_status_upstream_source(self):
         # RichTextTestResult completely replaces _write_status(), so check the
-        # overriden function for changes that may need copying in.
+        # overridden function for changes that may need copying in.
         source = dedent(
             inspect.getsource(
                 unittest.TextTestResult._write_status,  # type: ignore[attr-defined]
