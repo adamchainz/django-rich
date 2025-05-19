@@ -8,8 +8,7 @@ import django
 import pytest
 from django.core.management import call_command
 from django.test import SimpleTestCase
-from django.test.utils import captured_stdin
-from django.test.utils import captured_stdout
+from django.test.utils import captured_stdin, captured_stdout
 
 
 class ShellCommandTestCase(SimpleTestCase):
@@ -26,7 +25,6 @@ class ShellCommandTestCase(SimpleTestCase):
             console.push('Panel.fit("hi!")\n')
         lines = stdout.getvalue().splitlines()
         if django.VERSION >= (5, 2):
-
             assert lines == [
                 "0 objects imported automatically.",
                 "",

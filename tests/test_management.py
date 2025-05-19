@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import os
-from inspect import Parameter
-from inspect import Signature
-from inspect import signature
+from inspect import Parameter, Signature, signature
 from io import StringIO
 from typing import Any
 from unittest import mock
 
 import pytest
-from django.core.management import BaseCommand
-from django.core.management import CommandError
+from django.core.management import BaseCommand, CommandError
 from django.core.management import call_command as base_call_command
 from django.test import SimpleTestCase
 from rich.console import Console
