@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import sys
-from typing import Any
-from typing import TextIO
+from typing import Any, TextIO
 
-from django.core.management import BaseCommand
-from django.core.management import CommandError
+from django.core.management import BaseCommand, CommandError
 from rich.console import Console
 
 

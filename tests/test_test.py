@@ -13,8 +13,7 @@ from textwrap import dedent
 import django
 import pytest
 from django.db import connection
-from django.test import SimpleTestCase
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.test.runner import DiscoverRunner
 
 
