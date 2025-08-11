@@ -212,7 +212,9 @@ class RichPDBDebugResult(PDBDebugResult, RichTextTestResult):
 
 
 class RichTestRunner(unittest.TextTestRunner):
-    resultclass = RichTextTestResult
+    # Ignoring typing issue because it’s hard to make RichTextTestResult match
+    # the types of TextTestResult.
+    resultclass = RichTextTestResult  # type: ignore [assignment]
 
     def _printDurations(self, result: RichTextTestResult) -> None:
         if not result.collectedDurations:
