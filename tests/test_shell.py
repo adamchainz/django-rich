@@ -41,6 +41,10 @@ class ShellCommandTestCase(SimpleTestCase):
                 "╰─────╯",
             ]
 
+    @pytest.mark.skipif(
+        django.VERSION < (5, 2),
+        reason="Django 5.2 added the get_auto_imports() method",
+    )
     def test_get_auto_imports(self):
         command = Command()
         auto_imports = command.get_auto_imports()
