@@ -755,24 +755,45 @@ class TestRunnerTests(SimpleTestCase):
                 unittest.TextTestResult.addSubTest,
             )
         )
-        expected = dedent(
-            """\
-            def addSubTest(self, test, subtest, err):
-                if err is not None:
-                    if self.showAll:
-                        if issubclass(err[0], subtest.failureException):
-                            self._write_status(subtest, "FAIL")
-                        else:
-                            self._write_status(subtest, "ERROR")
-                    elif self.dots:
-                        if issubclass(err[0], subtest.failureException):
-                            self.stream.write('F')
-                        else:
-                            self.stream.write('E')
-                        self.stream.flush()
-                super(TextTestResult, self).addSubTest(test, subtest, err)
-            """
-        )
+        if sys.version_info >= (3, 14):
+            expected = dedent(
+                """\
+                def addSubTest(self, test, subtest, err):
+                    if err is not None:
+                        t = self._theme
+                        if self.showAll:
+                            if issubclass(err[0], subtest.failureException):
+                                self._write_status(subtest, f"{t.fail}FAIL{t.reset}")
+                            else:
+                                self._write_status(subtest, f"{t.fail}ERROR{t.reset}")
+                        elif self.dots:
+                            if issubclass(err[0], subtest.failureException):
+                                self.stream.write(f"{t.fail}F{t.reset}")
+                            else:
+                                self.stream.write(f"{t.fail}E{t.reset}")
+                            self.stream.flush()
+                    super(TextTestResult, self).addSubTest(test, subtest, err)
+                """
+            )
+        else:
+            expected = dedent(
+                """\
+                def addSubTest(self, test, subtest, err):
+                    if err is not None:
+                        if self.showAll:
+                            if issubclass(err[0], subtest.failureException):
+                                self._write_status(subtest, "FAIL")
+                            else:
+                                self._write_status(subtest, "ERROR")
+                        elif self.dots:
+                            if issubclass(err[0], subtest.failureException):
+                                self.stream.write('F')
+                            else:
+                                self.stream.write('E')
+                            self.stream.flush()
+                    super(TextTestResult, self).addSubTest(test, subtest, err)
+                """
+            )
         assert source == expected
 
     @sub_test_test
