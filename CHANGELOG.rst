@@ -7,6 +7,10 @@ Unreleased
 
 * Support Python 3.14.
 
+* Add some default shell imports from Rich on Django 5.2+: ``rich.inspect()``, ``rich.print()``, ``rich.print_json()``, and ``rich.pretty.pprint()``.
+
+  `PR #267 <https://github.com/adamchainz/django-rich/pull/267>`__.
+
 2.0.0 (2025-05-09)
 ------------------
 
