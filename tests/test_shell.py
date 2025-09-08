@@ -10,6 +10,8 @@ from django.core.management import call_command
 from django.test import SimpleTestCase
 from django.test.utils import captured_stdin, captured_stdout
 
+from django_rich.management.commands.shell import Command
+
 
 class ShellCommandTestCase(SimpleTestCase):
     @pytest.mark.skipif(
@@ -26,7 +28,7 @@ class ShellCommandTestCase(SimpleTestCase):
         lines = stdout.getvalue().splitlines()
         if django.VERSION >= (5, 2):
             assert lines == [
-                "0 objects imported automatically.",
+                "4 objects imported automatically (use -v 2 for details).",
                 "",
                 "╭─────╮",
                 "│ hi! │",
@@ -38,3 +40,13 @@ class ShellCommandTestCase(SimpleTestCase):
                 "│ hi! │",
                 "╰─────╯",
             ]
+
+    def test_get_auto_imports(self):
+        command = Command()
+        auto_imports = command.get_auto_imports()
+        assert auto_imports[-4:] == [
+            "rich.inspect",
+            "rich.print",
+            "rich.print_json",
+            "rich.pretty.pprint",
+        ]
