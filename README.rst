@@ -52,7 +52,31 @@ Reference
 ``shell`` command integration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-django-rich has an extended version of Django’s built-in |shell command|__ that enables `Rich’s pretty-printing <https://rich.readthedocs.io/en/stable/introduction.html?highlight=install#rich-in-the-repl>`__.
+django-rich has an extended version of Django’s built-in |shell command|__ that does two things:
+
+1. It enables `Rich’s pretty-printing <https://rich.readthedocs.io/en/stable/introduction.html?highlight=install#rich-in-the-repl>`__.
+2. On Django 5.2+, it adds `automatic imports <https://docs.djangoproject.com/en/stable/howto/custom-shell/>`__ of these functions from Rich:
+
+   * |inspect()|__
+
+     .. |inspect()| replace:: ``inspect()``
+     __ https://rich.readthedocs.io/en/stable/introduction.html#rich-inspect
+
+   * |print()|__
+
+     .. |print()| replace:: ``print()``
+     __ https://rich.readthedocs.io/en/stable/introduction.html#quick-start
+
+   * |print_json()|__
+
+     .. |print_json()| replace:: ``print_json()``
+     __ https://rich.readthedocs.io/en/stable/console.html#printing-json
+
+   * |pprint()|__
+
+     .. |pprint()| replace:: ``pprint()``
+     __ https://rich.readthedocs.io/en/stable/pretty.html#pprint-method
+
 To activate this feature, add ``django_rich`` to your ``INSTALLED_APPS`` setting:
 
 .. |shell command| replace:: ``shell`` command
