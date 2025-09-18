@@ -471,18 +471,34 @@ class TestRunnerTests(SimpleTestCase):
         assert result.returncode == 1
         lines = result.stderr.splitlines()
         assert "─ locals ─" in result.stderr
-        assert lines[-10:-7] == [
-            "AssertionError: False is not true",
-            "",
-            "─" * 80,
-        ]
-        # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
-        sql_line_re = r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\); alias=default"
-        assert re.match(sql_line_re, lines[-7])
-        assert lines[-6:-4] == [
-            "",
-            "━" * 80,
-        ]
+        if django.VERSION >= (6, 0):
+            assert lines[-11:-8] == [
+                "AssertionError: False is not true",
+                "",
+                "─" * 80,
+            ]
+            sql_line_re = r"\(\d.\d\d\d\) SELECT 1234,"
+            assert re.match(sql_line_re, lines[-8])
+            assert lines[-7:-4] == [
+                "       5678; args=(5678,); alias=default",
+                "",
+                "━" * 80,
+            ]
+        else:
+            assert lines[-10:-7] == [
+                "AssertionError: False is not true",
+                "",
+                "─" * 80,
+            ]
+            # https://docs.djangoproject.com/en/4.0/releases/4.0/#logging
+            sql_line_re = (
+                r"\(\d.\d\d\d\) SELECT 1234, 5678; args=\(5678,\); alias=default"
+            )
+            assert re.match(sql_line_re, lines[-7])
+            assert lines[-6:-4] == [
+                "",
+                "━" * 80,
+            ]
 
     def test_pdb(self):
         result = self.run_test(

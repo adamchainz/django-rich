@@ -26,7 +26,15 @@ class ShellCommandTestCase(SimpleTestCase):
             console.push("from rich.panel import Panel\n")
             console.push('Panel.fit("hi!")\n')
         lines = stdout.getvalue().splitlines()
-        if django.VERSION >= (5, 2):
+        if django.VERSION >= (6, 0):
+            assert lines == [
+                "10 objects imported automatically (use -v 2 for details).",
+                "",
+                "╭─────╮",
+                "│ hi! │",
+                "╰─────╯",
+            ]
+        elif django.VERSION >= (5, 2):
             assert lines == [
                 "4 objects imported automatically (use -v 2 for details).",
                 "",
