@@ -7,6 +7,10 @@ Unreleased
 
 * Support Django 6.0.
 
+* Make tracebacks use the full terminal width.
+
+  Thanks to Sébastien Corbin for the report in `Issue #240 <https://github.com/adamchainz/django-rich/issues/240>`__.
+
 2.1.0 (2025-09-09)
 ------------------
 
