@@ -5,7 +5,7 @@ import sys
 import unittest
 from collections.abc import Iterable
 from types import TracebackType
-from typing import Any, Union, cast
+from typing import Any, TypeAlias, cast
 from unittest.case import (  # type: ignore [attr-defined]
     TestCase,
     _SubTest,
@@ -22,10 +22,9 @@ from rich.style import Style
 from rich.table import Table
 from rich.traceback import Traceback
 
-_SysExcInfoType = Union[
-    tuple[type[BaseException], BaseException, TracebackType],
-    tuple[None, None, None],
-]
+_SysExcInfoType: TypeAlias = (
+    tuple[type[BaseException], BaseException, TracebackType] | tuple[None, None, None]
+)
 
 DJANGO_GREEN = Style(color=Color.from_rgb(32, 170, 118))
 DJANGO_GREEN_RULE = Rule(style=DJANGO_GREEN)
