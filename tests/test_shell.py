@@ -34,7 +34,7 @@ class ShellCommandTestCase(SimpleTestCase):
                 "│ hi! │",
                 "╰─────╯",
             ]
-        elif django.VERSION >= (5, 2):
+        else:
             assert lines == [
                 "4 objects imported automatically (use -v 2 for details).",
                 "",
@@ -42,17 +42,7 @@ class ShellCommandTestCase(SimpleTestCase):
                 "│ hi! │",
                 "╰─────╯",
             ]
-        else:
-            assert lines == [
-                "╭─────╮",
-                "│ hi! │",
-                "╰─────╯",
-            ]
 
-    @pytest.mark.skipif(
-        django.VERSION < (5, 2),
-        reason="Django 5.2 added the get_auto_imports() method",
-    )
     def test_get_auto_imports(self):
         command = Command()
         auto_imports = command.get_auto_imports()
