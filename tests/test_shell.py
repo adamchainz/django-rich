@@ -34,16 +34,10 @@ class ShellCommandTestCase(SimpleTestCase):
                 "│ hi! │",
                 "╰─────╯",
             ]
-        elif django.VERSION >= (5, 2):
+        else:
             assert lines == [
                 "4 objects imported automatically (use -v 2 for details).",
                 "",
-                "╭─────╮",
-                "│ hi! │",
-                "╰─────╯",
-            ]
-        else:
-            assert lines == [
                 "╭─────╮",
                 "│ hi! │",
                 "╰─────╯",
