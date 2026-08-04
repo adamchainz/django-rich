@@ -1,7 +1,0 @@
-prune tests
-include CHANGELOG.rst
-include img/*.png
-include LICENSE
-include pyproject.toml
-include README.rst
-include src/*/py.typed
