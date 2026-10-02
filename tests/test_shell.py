@@ -22,7 +22,7 @@ class ShellCommandTestCase(SimpleTestCase):
     def test_pretty(self, select):
         console = InteractiveConsole()
         with captured_stdin() as _, captured_stdout() as stdout:
-            call_command("shell", "-i", "python")
+            call_command("shell", "-i", "python", no_startup=True)
             console.push("from rich.panel import Panel\n")
             console.push('Panel.fit("hi!")\n')
         lines = stdout.getvalue().splitlines()
