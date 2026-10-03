@@ -33,7 +33,6 @@ YELLOW = Style(color="yellow")
 
 
 class RichTextTestResult(unittest.TextTestResult):
-    # Declaring attribute as _newline was added in Python 3.11.
     _newline: bool
 
     def __init__(
@@ -53,13 +52,9 @@ class RichTextTestResult(unittest.TextTestResult):
         with self.console.capture() as cap:
             self.console.print(Rule(characters="━", style=DJANGO_GREEN))
         self.separator2 = cap.get().rstrip("\n")
-        if sys.version_info < (3, 11):
-            self._newline = True
 
     def startTest(self, test: TestCase) -> None:
         super().startTest(test)
-        if sys.version_info < (3, 11):
-            self._newline = False
 
     def addSuccess(self, test: TestCase) -> None:
         if self.showAll:
@@ -156,14 +151,8 @@ class RichTextTestResult(unittest.TextTestResult):
         """Converts a sys.exc_info()-style tuple of values into a string."""
         exctype, value, tb = err
 
-        if hasattr(self, "_clean_tracebacks"):
-            # Post-bpo-24959 - merged to Python 3.11, backported to 3.9 and 3.10
-            tb = self._clean_tracebacks(exctype, value, tb, test)
-        else:  # pragma: no cover
-            # needed on old 3.9 and 3.10 patch versions, but not testing those
-            # Skip test runner traceback levels
-            while tb and self._is_relevant_tb_level(tb):  # type: ignore [attr-defined]
-                tb = tb.tb_next
+        # Post-bpo-24959
+        tb = self._clean_tracebacks(exctype, value, tb, test)  # type: ignore [attr-defined]
 
         msgLines = []
         if exctype is not None:  # pragma: no branch  # can't work when this isn't true
